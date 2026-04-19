@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Analytics | Inventory Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #ff9e00;
+      --info: #4895ef;
+      --border-radius: 12px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: white;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      border-right: 1px solid var(--light-gray);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-header {
+      padding: 25px 20px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-header i {
+      font-size: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      /* -webkit-background-clip: text; */
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 25px;
+      text-decoration: none;
+      color: var(--gray);
+      font-weight: 500;
+      transition: var(--transition);
+      border-left: 4px solid transparent;
+      margin: 2px 0;
+    }
+
+    .nav-item:hover {
+      background: rgba(67, 97, 238, 0.05);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+
+    .nav-item.active {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+      border-left-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      width: 24px;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 25px;
+      transition: var(--transition);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+      font-size: 28px;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .page-title p {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+    }
+
+    .search-box input {
+      padding: 12px 15px 12px 45px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      width: 280px;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(to right, #2ecc71, #27ae60);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(to right, var(--warning), #e68a00);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(to right, var(--danger), #e71e6e);
+      color: white;
+    }
+
+    .btn-info {
+      background: linear-gradient(to right, var(--info), #3d7bd9);
+      color: white;
+    }
+
+    /* REPORT FILTERS */
+    .report-filters {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    .filters-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .filters-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .filter-group select,
+    .filter-group input {
+      padding: 10px 15px;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .filter-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--light-gray);
+    }
+
+    /* KPI CARDS */
+    .kpi-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .kpi-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    .kpi-card.sales::before {
+      background: linear-gradient(to right, #4361ee, #7209b7);
+    }
+
+    .kpi-card.profit::before {
+      background: linear-gradient(to right, #2ecc71, #27ae60);
+    }
+
+    .kpi-card.inventory::before {
+      background: linear-gradient(to right, #4cc9f0, #4895ef);
+    }
+
+    .kpi-card.orders::before {
+      background: linear-gradient(to right, #ff9e00, #ff6b00);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .kpi-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .kpi-card.sales .kpi-icon {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+    }
+
+    .kpi-card.profit .kpi-icon {
+      background: rgba(46, 204, 113, 0.1);
+      color: #2ecc71;
+    }
+
+    .kpi-card.inventory .kpi-icon {
+      background: rgba(76, 201, 240, 0.1);
+      color: var(--success);
+    }
+
+    .kpi-card.orders .kpi-icon {
+      background: rgba(255, 158, 0, 0.1);
+      color: var(--warning);
+    }
+
+    .kpi-content h3 {
+      font-size: 14px;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .kpi-change {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .kpi-change.positive {
+      color: #2ecc71;
+    }
+
+    .kpi-change.negative {
+      color: var(--danger);
+    }
+
+    /* CHARTS SECTION */
+    .charts-section {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .chart-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .chart-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chart-actions select {
+      padding: 8px 12px;
+      border: 1px solid var(--light-gray);
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: var(--gray);
+    }
+
+    .chart-actions select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* REPORT TABLES */
+    .report-tables {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .table-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8f9fa;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--dark);
+      border-bottom: 1px solid var(--light-gray);
+      font-size: 14px;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid var(--light-gray);
+      color: var(--dark);
+      font-size: 14px;
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: rgba(67, 97, 238, 0.03);
+    }
+
+    .trend-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .trend-up {
+      background: rgba(46, 204, 113, 0.1);
+      color: #2ecc71;
+    }
+
+    .trend-down {
+      background: rgba(247, 37, 133, 0.1);
+      color: var(--danger);
+    }
+
+    .trend-neutral {
+      background: rgba(108, 117, 125, 0.1);
+      color: var(--gray);
+    }
+
+    /* EXPORT OPTIONS */
+    .export-options {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+    }
+
+    .export-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .export-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .export-card {
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      text-align: center;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .export-card:hover {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.05);
+    }
+
+    .export-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(67, 97, 238, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .export-card h4 {
+      font-size: 16px;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    .export-card p {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    /* SCHEDULED REPORTS */
+    .scheduled-reports {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .scheduled-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .scheduled-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .scheduled-list {
+      list-style: none;
+    }
+
+    .scheduled-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      border-bottom: 1px solid var(--light-gray);
+      transition: var(--transition);
+    }
+
+    .scheduled-item:hover {
+      background: rgba(67, 97, 238, 0.05);
+    }
+
+    .scheduled-item:last-child {
+      border-bottom: none;
+    }
+
+    .scheduled-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .scheduled-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .scheduled-details h4 {
+      font-size: 15px;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+
+    .scheduled-details p {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .scheduled-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease;
+      overflow: hidden;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+      color: var(--dark);
+    }
+
+    .close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .close:hover {
+      color: var(--danger);
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .frequency-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .frequency-option {
+      padding: 10px;
+      text-align: center;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .frequency-option:hover {
+      border-color: var(--primary);
+    }
+
+    .frequency-option.selected {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .modal-footer {
+      padding: 20px 25px;
+      border-top: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .pagination button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--light-gray);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      color: var(--dark);
+    }
+
+    .pagination button:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .charts-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .report-tables {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px;
+      }
+      
+      .sidebar-header h2,
+      .nav-item span {
+        display: none;
+      }
+      
+      .main {
+        margin-left: 70px;
+      }
+      
+      .topbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      .search-box input {
+        width: 100%;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .frequency-options {
+        grid-template-columns: 1fr;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .kpi-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .main {
+        padding: 15px;
+      }
+      
+      .modal-content {
+        margin: 20px;
+        width: calc(100% - 40px);
+      }
+      
+      .scheduled-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .scheduled-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <i class="fas fa-boxes"></i>
+    <h2>Inventory Pro</h2>
+  </div>
+  
+  <div class="sidebar-nav">
+    <a href="dashboard.html" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="product.html" class="nav-item">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
+    </a>
+    <a href="stock.html" class="nav-item">
+      <i class="fas fa-warehouse"></i>
+      <span>Stock</span>
+    </a>
+    <a href="users.html" class="nav-item">
+      <i class="fas fa-users"></i>
+      <span>Users</span>
+    </a>
+     <a href="roles.html" class="nav-item active">
+      <i class="fas fa-user-tag"></i>
+      <span>Roles</span>
+    </a>
+    <a href="reports.html" class="nav-item active">
+      <i class="fas fa-chart-bar"></i>
+      <span>Reports</span>
+    </a>
+    <a href="settings.html" class="nav-item">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">
+      <h1>Reports & Analytics</h1>
+      <p>Comprehensive insights and analytics for your inventory management</p>
+    </div>
+    
+    <div class="actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search reports...">
+      </div>
+      
+      <button class="btn btn-primary" onclick="generateCustomReport()">
+        <i class="fas fa-plus"></i>
+        Custom Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Filters -->
+  <div class="report-filters">
+    <div class="filters-header">
+      <h3>Report Filters</h3>
+      <button class="btn btn-sm" onclick="resetFilters()">
+        <i class="fas fa-redo"></i>
+        Reset Filters
+      </button>
+    </div>
+    
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Date Range</label>
+        <select id="dateRange">
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="last7" selected>Last 7 Days</option>
+          <option value="last30">Last 30 Days</option>
+          <option value="thisMonth">This Month</option>
+          <option value="lastMonth">Last Month</option>
+          <option value="thisQuarter">This Quarter</option>
+          <option value="thisYear">This Year</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      
+      <div class="filter-group" id="customDateRange" style="display: none;">
+        <label>Custom Range</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <input type="date" id="startDate">
+          <input type="date" id="endDate">
+        </div>
+      </div>
+      
+      <div class="filter-group">
+        <label>Report Type</label>
+        <select id="reportType">
+          <option value="all">All Reports</option>
+          <option value="sales">Sales Reports</option>
+          <option value="inventory">Inventory Reports</option>
+          <option value="financial">Financial Reports</option>
+          <option value="performance">Performance Reports</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="categoryFilter">
+          <option value="all">All Categories</option>
+          <option value="electronics">Electronics</option>
+          <option value="clothing">Clothing</option>
+          <option value="home">Home & Kitchen</option>
+          <option value="books">Books</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="filter-actions">
+      <button class="btn" onclick="applyFilters()">
+        <i class="fas fa-filter"></i>
+        Apply Filters
+      </button>
+      <button class="btn btn-primary" onclick="generateReport()">
+        <i class="fas fa-chart-line"></i>
+        Generate Report
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-cards">
+    <div class="kpi-card sales">
+      <div class="kpi-header">
+        <div class="kpi-content">
+          <h3>Total Sales</h3>
+          <div class="kpi-value">$48,250</div>
+          <div class="kpi-change positive">
+            <i class="fas fa-arrow-up"></i>
+            12.5% from last period
+          </div>
+        </div>
+        <div class="kpi-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="kpi-card profit">
+      <div class="kpi-header">
+        <div class="kpi-content">
+          <h3>Gross Profit</h3>
+          <div class="kpi-value">$18,940</div>
+          <div class="kpi-change positive">
+            <i class="fas fa-arrow-up"></i>
+            8.3% from last period
+          </div>
+        </div>
+        <div class="kpi-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="kpi-card inventory">
+      <div class="kpi-header">
+        <div class="kpi-content">
+          <h3>Inventory Value</h3>
+          <div class="kpi-value">$125,420</div>
+          <div class="kpi-change negative">
+            <i class="fas fa-arrow-down"></i>
+            3.2% from last period
+          </div>
+        </div>
+        <div class="kpi-icon">
+          <i class="fas fa-boxes"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="kpi-card orders">
+      <div class="kpi-header">
+        <div class="kpi-content">
+          <h3>Total Orders</h3>
+          <div class="kpi-value">1,248</div>
+          <div class="kpi-change positive">
+            <i class="fas fa-arrow-up"></i>
+            15.7% from last period
+          </div>
+        </div>
+        <div class="kpi-icon">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3>Sales Trend Analysis</h3>
+        <div class="chart-actions">
+          <select id="salesChartPeriod">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+          </select>
+        </div>
+      </div>
+      <canvas id="salesTrendChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3>Category Performance</h3>
+      </div>
+      <canvas id="categoryPerformanceChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Report Tables -->
+  <div class="report-tables">
+    <div class="table-container">
+      <div class="table-header">
+        <h3>Top Performing Products</h3>
+        <button class="btn btn-sm" onclick="exportTopProducts()">
+          <i class="fas fa-download"></i>
+          Export
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Units Sold</th>
+            <th>Revenue</th>
+            <th>Trend</th>
+          </tr>
+        </thead>
+        <tbody id="topProductsTable">
+          <!-- Table rows will be added by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="table-container">
+      <div class="table-header">
+        <h3>Low Stock Alert</h3>
+        <button class="btn btn-sm" onclick="exportLowStock()">
+          <i class="fas fa-download"></i>
+          Export
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Current Stock</th>
+            <th>Min. Required</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="lowStockTable">
+          <!-- Table rows will be added by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Export Options -->
+  <div class="export-options">
+    <div class="export-header">
+      <h3>Export Reports</h3>
+      <button class="btn btn-primary" onclick="exportAllReports()">
+        <i class="fas fa-file-archive"></i>
+        Export All
+      </button>
+    </div>
+    
+    <div class="export-grid">
+      <div class="export-card" onclick="exportReport('sales')">
+        <div class="export-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h4>Sales Report</h4>
+        <p>Detailed sales analysis and trends</p>
+      </div>
+      
+      <div class="export-card" onclick="exportReport('inventory')">
+        <div class="export-icon">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <h4>Inventory Report</h4>
+        <p>Complete inventory status and valuation</p>
+      </div>
+      
+      <div class="export-card" onclick="exportReport('financial')">
+        <div class="export-icon">
+          <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <h4>Financial Report</h4>
+        <p>Revenue, profit, and expense analysis</p>
+      </div>
+      
+      <div class="export-card" onclick="exportReport('performance')">
+        <div class="export-icon">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <h4>Performance Report</h4>
+        <p>Business performance metrics</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Reports -->
+  <div class="scheduled-reports">
+    <div class="scheduled-header">
+      <h3>Scheduled Reports</h3>
+      <button class="btn btn-primary" onclick="openScheduleModal()">
+        <i class="fas fa-plus"></i>
+        Schedule Report
+      </button>
+    </div>
+    
+    <ul class="scheduled-list" id="scheduledReportsList">
+      <!-- Scheduled reports will be populated by JavaScript -->
+    </ul>
+  </div>
+
+  <!-- Schedule Report Modal -->
+  <div class="modal" id="scheduleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Schedule Report</h2>
+        <button class="close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Report Name</label>
+          <input type="text" id="reportName" placeholder="Enter report name">
+        </div>
+        
+        <div class="form-group">
+          <label>Report Type</label>
+          <select id="scheduledReportType">
+            <option value="sales">Sales Report</option>
+            <option value="inventory">Inventory Report</option>
+            <option value="financial">Financial Report</option>
+            <option value="performance">Performance Report</option>
+            <option value="custom">Custom Report</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Frequency</label>
+            <div class="frequency-options">
+              <div class="frequency-option selected" onclick="selectFrequency(this, 'daily')">Daily</div>
+              <div class="frequency-option" onclick="selectFrequency(this, 'weekly')">Weekly</div>
+              <div class="frequency-option" onclick="selectFrequency(this, 'monthly')">Monthly</div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Format</label>
+            <select id="reportFormat">
+              <option value="pdf">PDF</option>
+              <option value="excel">Excel</option>
+              <option value="csv">CSV</option>
+              <option value="html">HTML</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Recipients</label>
+          <input type="text" id="reportRecipients" placeholder="Enter email addresses (comma separated)">
+        </div>
+        
+        <div class="form-group">
+          <label>Schedule Time</label>
+          <input type="time" id="scheduleTime" value="09:00">
+        </div>
+        
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="scheduleStartDate">
+        </div>
+        
+        <div class="form-group">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="sendImmediately">
+            <label for="sendImmediately" style="margin: 0;">Send report immediately</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScheduledReport()">Schedule Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Report Modal -->
+  <div class="modal" id="customReportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create Custom Report</h2>
+        <button class="close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Report Title</label>
+          <input type="text" id="customReportTitle" placeholder="Enter report title">
+        </div>
+        
+        <div class="form-group">
+          <label>Report Description</label>
+          <textarea id="customReportDesc" rows="3" placeholder="Describe what this report will contain"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Data Source</label>
+          <select id="dataSource" multiple style="height: 150px;">
+            <option value="sales">Sales Data</option>
+            <option value="inventory">Inventory Data</option>
+            <option value="products">Product Data</option>
+            <option value="customers">Customer Data</option>
+            <option value="suppliers">Supplier Data</option>
+            <option value="orders">Order Data</option>
+            <option value="users">User Activity</option>
+            <option value="financial">Financial Data</option>
+          </select>
+          <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">Hold Ctrl/Cmd to select multiple options</div>
+        </div>
+        
+        <div class="form-group">
+          <label>Time Period</label>
+          <select id="customTimePeriod">
+            <option value="last7">Last 7 Days</option>
+            <option value="last30">Last 30 Days</option>
+            <option value="thisMonth">This Month</option>
+            <option value="lastMonth">Last Month</option>
+            <option value="thisQuarter">This Quarter</option>
+            <option value="thisYear">This Year</option>
+            <option value="allTime">All Time</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Include Charts</label>
+            <select id="chartTypes">
+              <option value="none">No Charts</option>
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+              <option value="mixed">Mixed Charts</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Output Format</label>
+            <select id="outputFormat">
+              <option value="pdf">PDF Document</option>
+              <option value="excel">Excel Spreadsheet</option>
+              <option value="csv">CSV File</option>
+              <option value="html">Web Page</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="includeSummary">
+            <label for="includeSummary" style="margin: 0;">Include Executive Summary</label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="scheduleCustomReport">
+            <label for="scheduleCustomReport" style="margin: 0;">Schedule this report</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="generateCustomReportNow()">Generate Report</button>
+        <button class="btn btn-success" onclick="previewReport()">
+          <i class="fas fa-eye"></i>
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sample Data
+  const topProductsData = [
+    { id: 1, name: "iPhone 13 Pro", category: "Electronics", unitsSold: 245, revenue: 244755, trend: "up" },
+    { id: 2, name: "MacBook Pro 14\"", category: "Electronics", unitsSold: 128, revenue: 255744, trend: "up" },
+    { id: 3, name: "Nike Air Max", category: "Clothing", unitsSold: 420, revenue: 54558, trend: "up" },
+    { id: 4, name: "Coffee Maker", category: "Home", unitsSold: 185, revenue: 16615, trend: "stable" },
+    { id: 5, name: "Wireless Headphones", category: "Electronics", unitsSold: 312, revenue: 62388, trend: "up" },
+    { id: 6, name: "Office Chair", category: "Home", unitsSold: 95, revenue: 11305, trend: "down" },
+    { id: 7, name: "Gaming Mouse", category: "Electronics", unitsSold: 280, revenue: 27992, trend: "up" },
+    { id: 8, name: "Desk Lamp", category: "Home", unitsSold: 150, revenue: 4497, trend: "stable" }
+  ];
+
+  const lowStockData = [
+    { id: 1, name: "Samsung Galaxy S22", currentStock: 8, minRequired: 15, status: "Critical" },
+    { id: 2, name: "MacBook Pro 14\"", currentStock: 5, minRequired: 8, status: "Critical" },
+    { id: 3, name: "Gaming Mouse", currentStock: 12, minRequired: 25, status: "Warning" },
+    { id: 4, name: "Coffee Maker", currentStock: 0, minRequired: 5, status: "Out of Stock" },
+    { id: 5, name: "Desk Lamp", currentStock: 15, minRequired: 30, status: "Warning" },
+    { id: 6, name: "Monitor Stand", currentStock: 6, minRequired: 15, status: "Critical" }
+  ];
+
+  const scheduledReports = [
+    { id: 1, name: "Daily Sales Report", type: "sales", frequency: "daily", nextRun: "Tomorrow, 9:00 AM", recipients: "admin@company.com" },
+    { id: 2, name: "Weekly Inventory Report", type: "inventory", frequency: "weekly", nextRun: "Monday, 8:00 AM", recipients: "warehouse@company.com" },
+    { id: 3, name: "Monthly Financial Summary", type: "financial", frequency: "monthly", nextRun: "Feb 1, 10:00 AM", recipients: "finance@company.com, ceo@company.com" },
+    { id: 4, name: "Quarterly Performance Review", type: "performance", frequency: "quarterly", nextRun: "Apr 1, 9:00 AM", recipients: "management@company.com" }
+  ];
+
+  let selectedFrequency = 'daily';
+
+  // Initialize Charts
+  function initCharts() {
+    // Sales Trend Chart
+    const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22', 'Jan 29', 'Feb 5', 'Feb 12'],
+        datasets: [
+          {
+            label: 'Revenue ($)',
+            data: [12000, 13500, 14200, 15500, 14800, 16200, 17500],
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#4361ee',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
+          },
+          {
+            label: 'Orders',
+            data: [85, 92, 105, 120, 115, 132, 145],
+            borderColor: '#7209b7',
+            backgroundColor: 'rgba(114, 9, 183, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#7209b7',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Revenue ($)',
+              color: '#666'
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Orders',
+              color: '#666'
+            },
+            grid: {
+              drawOnChartArea: false,
+            },
+          },
+          x: {
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+
+    // Category Performance Chart
+    const categoryCtx = document.getElementById('categoryPerformanceChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
+        datasets: [{
+          label: 'Revenue ($)',
+          data: [48250, 18500, 12450, 8200, 5200],
+          backgroundColor: [
+            '#4361ee',
+            '#7209b7',
+            '#4cc9f0',
+            '#f72585',
+            '#ff9e00'
+          ],
+          borderColor: [
+            '#3a56d4',
+            '#6008a1',
+            '#43b0d9',
+            '#d81b60',
+            '#e68a00'
+          ],
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          datalabels: {
+            color: '#fff',
+            font: {
+              weight: 'bold',
+              size: 12
+            },
+            formatter: function(value) {
+              return '$' + (value / 1000).toFixed(0) + 'K';
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  // Render Top Products Table
+  function renderTopProductsTable() {
+    const tbody = document.getElementById('topProductsTable');
+    tbody.innerHTML = '';
+
+    topProductsData.forEach((product, index) => {
+      let trendClass = 'trend-neutral';
+      let trendIcon = 'fa-minus';
+      let trendText = 'Stable';
+      
+      if (product.trend === 'up') {
+        trendClass = 'trend-up';
+        trendIcon = 'fa-arrow-up';
+        trendText = 'Growing';
+      } else if (product.trend === 'down') {
+        trendClass = 'trend-down';
+        trendIcon = 'fa-arrow-down';
+        trendText = 'Declining';
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${product.name}</strong>
+        </td>
+        <td>${product.category}</td>
+        <td>${product.unitsSold.toLocaleString()}</td>
+        <td><strong>$${product.revenue.toLocaleString()}</strong></td>
+        <td>
+          <span class="trend-indicator ${trendClass}">
+            <i class="fas ${trendIcon}"></i>
+            ${trendText}
+          </span>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  // Render Low Stock Table
+  function renderLowStockTable() {
+    const tbody = document.getElementById('lowStockTable');
+    tbody.innerHTML = '';
+
+    lowStockData.forEach((item, index) => {
+      let statusClass = 'trend-neutral';
+      let actionText = 'Review';
+      
+      if (item.status === 'Critical') {
+        statusClass = 'trend-down';
+        actionText = 'Restock Now';
+      } else if (item.status === 'Warning') {
+        statusClass = 'trend-up';
+        actionText = 'Monitor';
+      } else if (item.status === 'Out of Stock') {
+        statusClass = 'trend-down';
+        actionText = 'Urgent Restock';
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${item.name}</strong>
+        </td>
+        <td>${item.currentStock}</td>
+        <td>${item.minRequired}</td>
+        <td>
+          <span class="trend-indicator ${statusClass}">
+            ${item.status}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-sm ${item.status === 'Critical' || item.status === 'Out of Stock' ? 'btn-danger' : 'btn-warning'}" 
+                  onclick="restockProduct(${item.id})">
+            ${actionText}
+          </button>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  // Render Scheduled Reports
+  function renderScheduledReports() {
+    const list = document.getElementById('scheduledReportsList');
+    list.innerHTML = '';
+
+    scheduledReports.forEach((report, index) => {
+      let typeIcon = 'fa-chart-line';
+      if (report.type === 'inventory') typeIcon = 'fa-boxes';
+      else if (report.type === 'financial') typeIcon = 'fa-file-invoice-dollar';
+      else if (report.type === 'performance') typeIcon = 'fa-tachometer-alt';
+
+      let frequencyColor = '#4361ee';
+      if (report.frequency === 'weekly') frequencyColor = '#7209b7';
+      else if (report.frequency === 'monthly') frequencyColor = '#4cc9f0';
+      else if (report.frequency === 'quarterly') frequencyColor = '#ff9e00';
+
+      const item = document.createElement('li');
+      item.className = 'scheduled-item';
+      
+      item.innerHTML = `
+        <div class="scheduled-info">
+          <div class="scheduled-icon" style="background: ${frequencyColor}">
+            <i class="fas ${typeIcon}"></i>
+          </div>
+          <div class="scheduled-details">
+            <h4>${report.name}</h4>
+            <p>${report.frequency.charAt(0).toUpperCase() + report.frequency.slice(1)} • Next: ${report.nextRun}</p>
+            <p style="font-size: 12px; color: var(--gray); margin-top: 3px;">To: ${report.recipients}</p>
+          </div>
+        </div>
+        <div class="scheduled-actions">
+          <button class="btn btn-sm" onclick="runReportNow(${report.id})">
+            <i class="fas fa-play"></i>
+            Run Now
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteScheduledReport(${report.id})">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      `;
+      
+      list.appendChild(item);
+    });
+  }
+
+  // Handle Date Range Selection
+  document.getElementById('dateRange').addEventListener('change', function(e) {
+    const customRange = document.getElementById('customDateRange');
+    if (e.target.value === 'custom') {
+      customRange.style.display = 'block';
+    } else {
+      customRange.style.display = 'none';
+    }
+  });
+
+  // Apply Filters
+  function applyFilters() {
+    const dateRange = document.getElementById('dateRange').value;
+    const reportType = document.getElementById('reportType').value;
+    const category = document.getElementById('categoryFilter').value;
+    
+    showNotification(`Filters applied: ${dateRange}, ${reportType}, ${category}`, 'success');
+    
+    // In a real app, this would filter the data and update charts/tables
+    updateReportData();
+  }
+
+  // Reset Filters
+  function resetFilters() {
+    document.getElementById('dateRange').value = 'last7';
+    document.getElementById('reportType').value = 'all';
+    document.getElementById('categoryFilter').value = 'all';
+    document.getElementById('customDateRange').style.display = 'none';
+    
+    showNotification('Filters reset to default', 'info');
+    updateReportData();
+  }
+
+  // Generate Report
+  function generateReport() {
+    showNotification('Generating report...', 'success');
+    
+    // Simulate report generation
+    setTimeout(() => {
+      showNotification('Report generated successfully! Download will start shortly.', 'success');
+      
+      // In a real app, this would trigger download
+      simulateDownload('inventory_report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }, 1500);
+  }
+
+  // Export Report
+  function exportReport(type) {
+    const formats = {
+      'sales': 'Sales Report',
+      'inventory': 'Inventory Report',
+      'financial': 'Financial Report',
+      'performance': 'Performance Report'
+    };
+    
+    showNotification(`Exporting ${formats[type]}...`, 'success');
+    
+    setTimeout(() => {
+      showNotification(`${formats[type]} exported successfully!`, 'success');
+      simulateDownload(type + '_report_' + new Date().toISOString().split('T')[0] + '.xlsx');
+    }, 1000);
+  }
+
+  // Export All Reports
+  function exportAllReports() {
+    showNotification('Preparing all reports for export...', 'success');
+    
+    setTimeout(() => {
+      showNotification('All reports exported successfully! Archive will download shortly.', 'success');
+      simulateDownload('all_reports_' + new Date().toISOString().split('T')[0] + '.zip');
+    }, 2000);
+  }
+
+  // Export Top Products
+  function exportTopProducts() {
+    showNotification('Exporting top products data...', 'success');
+    simulateDownload('top_products_' + new Date().toISOString().split('T')[0] + '.csv');
+  }
+
+  // Export Low Stock
+  function exportLowStock() {
+    showNotification('Exporting low stock alert data...', 'success');
+    simulateDownload('low_stock_' + new Date().toISOString().split('T')[0] + '.csv');
+  }
+
+  // Open Schedule Modal
+  function openScheduleModal() {
+    document.getElementById('scheduleModal').style.display = 'flex';
+    
+    // Set default start date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('scheduleStartDate').value = tomorrow.toISOString().split('T')[0];
+  }
+
+  // Select Frequency
+  function selectFrequency(element, frequency) {
+    selectedFrequency = frequency;
+    
+    // Remove selected class from all options
+    document.querySelectorAll('.frequency-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    element.classList.add('selected');
+  }
+
+  // Save Scheduled Report
+  function saveScheduledReport() {
+    const name = document.getElementById('reportName').value.trim();
+    const type = document.getElementById('scheduledReportType').value;
+    const format = document.getElementById('reportFormat').value;
+    const recipients = document.getElementById('reportRecipients').value.trim();
+    const time = document.getElementById('scheduleTime').value;
+    const startDate = document.getElementById('scheduleStartDate').value;
+    const sendImmediately = document.getElementById('sendImmediately').checked;
+
+    if (!name || !recipients) {
+      showNotification('Please fill in all required fields!', 'danger');
+      return;
+    }
+
+    // Calculate next run date
+    const nextRun = calculateNextRun(selectedFrequency, startDate, time);
+    
+    // Add to scheduled reports
+    scheduledReports.push({
+      id: scheduledReports.length + 1,
+      name,
+      type,
+      frequency: selectedFrequency,
+      nextRun,
+      recipients
+    });
+
+    showNotification('Report scheduled successfully!', 'success');
+    
+    if (sendImmediately) {
+      showNotification('Report sent to recipients immediately.', 'info');
+    }
+    
+    closeModal();
+    renderScheduledReports();
+  }
+
+  // Calculate Next Run
+  function calculateNextRun(frequency, startDate, time) {
+    const now = new Date();
+    const start = new Date(startDate);
+    start.setHours(time.split(':')[0], time.split(':')[1]);
+    
+    if (start < now) {
+      // If start time is in the past, calculate next occurrence
+      if (frequency === 'daily') {
+        start.setDate(start.getDate() + 1);
+      } else if (frequency === 'weekly') {
+        start.setDate(start.getDate() + 7);
+      } else if (frequency === 'monthly') {
+        start.setMonth(start.getMonth() + 1);
+      }
+    }
+    
+    return formatDate(start) + ', ' + formatTime(start);
+  }
+
+  // Format Date
+  function formatDate(date) {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options).split(',')[0] + ', ' + 
+           date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // Format Time
+  function formatTime(date) {
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // Run Report Now
+  function runReportNow(reportId) {
+    const report = scheduledReports.find(r => r.id === reportId);
+    if (report) {
+      showNotification(`Running ${report.name} now...`, 'success');
+      
+      setTimeout(() => {
+        showNotification(`${report.name} has been sent to ${report.recipients}`, 'success');
+      }, 1500);
+    }
+  }
+
+  // Delete Scheduled Report
+  function deleteScheduledReport(reportId) {
+    if (confirm('Are you sure you want to delete this scheduled report?')) {
+      const index = scheduledReports.findIndex(r => r.id === reportId);
+      if (index !== -1) {
+        scheduledReports.splice(index, 1);
+        renderScheduledReports();
+        showNotification('Scheduled report deleted successfully!', 'success');
+      }
+    }
+  }
+
+  // Generate Custom Report
+  function generateCustomReport() {
+    document.getElementById('customReportModal').style.display = 'flex';
+  }
+
+  // Generate Custom Report Now
+  function generateCustomReportNow() {
+    const title = document.getElementById('customReportTitle').value.trim();
+    const description = document.getElementById('customReportDesc').value.trim();
+    const dataSource = Array.from(document.getElementById('dataSource').selectedOptions).map(o => o.value);
+    const timePeriod = document.getElementById('customTimePeriod').value;
+    const chartType = document.getElementById('chartTypes').value;
+    const format = document.getElementById('outputFormat').value;
+    const includeSummary = document.getElementById('includeSummary').checked;
+    const schedule = document.getElementById('scheduleCustomReport').checked;
+
+    if (!title || !description || dataSource.length === 0) {
+      showNotification('Please fill in all required fields!', 'danger');
+      return;
+    }
+
+    showNotification(`Generating custom report: ${title}...`, 'success');
+    
+    setTimeout(() => {
+      if (schedule) {
+        showNotification('Custom report scheduled successfully!', 'success');
+        openScheduleModal();
+        // Pre-fill schedule modal with custom report details
+        document.getElementById('reportName').value = title;
+      } else {
+        showNotification('Custom report generated successfully! Download will start shortly.', 'success');
+        simulateDownload('custom_report_' + title.toLowerCase().replace(/\s+/g, '_') + '.' + format);
+      }
+      
+      closeModal();
+    }, 2000);
+  }
+
+  // Preview Report
+  function previewReport() {
+    showNotification('Generating report preview...', 'info');
+    
+    setTimeout(() => {
+      // In a real app, this would open a preview window
+      alert('Report preview would open in a new window. This feature requires backend implementation.');
+    }, 1000);
+  }
+
+  // Restock Product
+  function restockProduct(productId) {
+    showNotification('Opening restock form for this product...', 'info');
+    // In a real app, this would open the stock management page or modal
+  }
+
+  // Update Report Data
+  function updateReportData() {
+    // In a real app, this would fetch new data based on filters
+    renderTopProductsTable();
+    renderLowStockTable();
+  }
+
+  // Close Modal
+  function closeModal() {
+    document.getElementById('scheduleModal').style.display = 'none';
+    document.getElementById('customReportModal').style.display = 'none';
+  }
+
+  // Simulate Download
+  function simulateDownload(filename) {
+    // In a real app, this would trigger actual file download
+    console.log(`Simulating download of: ${filename}`);
+  }
+
+  // Show Notification
+  function showNotification(message, type = 'success') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-${type}`;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#2ecc71' : type === 'danger' ? '#f72585' : '#4361ee'};
+      color: white;
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideInRight 0.3s ease;
+    `;
+    
+    notification.innerHTML = `
+      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+      <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  }
+
+  // Add animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    initCharts();
+    renderTopProductsTable();
+    renderLowStockTable();
+    renderScheduledReports();
+    
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    
+    document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+    document.getElementById('endDate').value = today;
+    document.getElementById('scheduleStartDate').value = today;
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const scheduleModal = document.getElementById('scheduleModal');
+      const customReportModal = document.getElementById('customReportModal');
+      
+      if (event.target === scheduleModal || event.target === customReportModal) {
+        closeModal();
+      }
+    };
+  });
+</script>
+
+</body>
+</html>

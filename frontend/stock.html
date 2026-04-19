@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Management | Inventory Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #ff9e00;
+      --info: #4895ef;
+      --border-radius: 12px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: white;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      border-right: 1px solid var(--light-gray);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar-header {
+      padding: 25px 20px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-header i {
+      font-size: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      /* -webkit-background-clip: text; */
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 25px;
+      text-decoration: none;
+      color: var(--gray);
+      font-weight: 500;
+      transition: var(--transition);
+      border-left: 4px solid transparent;
+      margin: 2px 0;
+    }
+
+    .nav-item:hover {
+      background: rgba(67, 97, 238, 0.05);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+
+    .nav-item.active {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+      border-left-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      width: 24px;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 25px;
+      transition: var(--transition);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title h1 {
+      font-size: 28px;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .page-title p {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+    }
+
+    .search-box input {
+      padding: 12px 15px 12px 45px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      width: 280px;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(to right, #2ecc71, #27ae60);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(to right, var(--warning), #e68a00);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(to right, var(--danger), #e71e6e);
+      color: white;
+    }
+
+    /* STOCK SUMMARY CARDS */
+    .stock-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    .summary-card.total::before {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+    }
+
+    .summary-card.low-stock::before {
+      background: linear-gradient(to right, var(--warning), #ff6b00);
+    }
+
+    .summary-card.out-of-stock::before {
+      background: linear-gradient(to right, var(--danger), #e63946);
+    }
+
+    .summary-card.recent::before {
+      background: linear-gradient(to right, var(--success), #2ecc71);
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .summary-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .summary-card.total .summary-icon {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+    }
+
+    .summary-card.low-stock .summary-icon {
+      background: rgba(255, 158, 0, 0.1);
+      color: var(--warning);
+    }
+
+    .summary-card.out-of-stock .summary-icon {
+      background: rgba(247, 37, 133, 0.1);
+      color: var(--danger);
+    }
+
+    .summary-card.recent .summary-icon {
+      background: rgba(76, 201, 240, 0.1);
+      color: var(--success);
+    }
+
+    .summary-content h3 {
+      font-size: 14px;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .summary-change {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .summary-change.positive {
+      color: #2ecc71;
+    }
+
+    .summary-change.negative {
+      color: var(--danger);
+    }
+
+    /* STOCK CHARTS */
+    .stock-charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .chart-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .chart-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chart-actions select {
+      padding: 8px 12px;
+      border: 1px solid var(--light-gray);
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: var(--gray);
+    }
+
+    .chart-actions select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* STOCK TABLE */
+    .stock-table-container {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+
+    .table-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+    }
+
+    .table-filters {
+      display: flex;
+      gap: 10px;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--light-gray);
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: var(--gray);
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8f9fa;
+    }
+
+    th {
+      padding: 18px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--dark);
+      border-bottom: 1px solid var(--light-gray);
+      font-size: 14px;
+    }
+
+    td {
+      padding: 18px 15px;
+      border-bottom: 1px solid var(--light-gray);
+      color: var(--dark);
+      font-size: 14px;
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: rgba(67, 97, 238, 0.03);
+    }
+
+    .stock-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-in-stock {
+      background: rgba(76, 201, 240, 0.1);
+      color: var(--success);
+    }
+
+    .status-low-stock {
+      background: rgba(255, 158, 0, 0.1);
+      color: var(--warning);
+    }
+
+    .status-out-of-stock {
+      background: rgba(247, 37, 133, 0.1);
+      color: var(--danger);
+    }
+
+    .stock-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .stock-progress {
+      width: 100px;
+      height: 8px;
+      background: var(--light-gray);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 10px;
+    }
+
+    .progress-bar.high {
+      background: var(--success);
+      width: 80%;
+    }
+
+    .progress-bar.medium {
+      background: var(--warning);
+      width: 40%;
+    }
+
+    .progress-bar.low {
+      background: var(--danger);
+      width: 10%;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-buttons button {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .action-buttons .btn-restock {
+      background: rgba(76, 201, 240, 0.1);
+      color: var(--success);
+    }
+
+    .action-buttons .btn-restock:hover {
+      background: var(--success);
+      color: white;
+    }
+
+    .action-buttons .btn-adjust {
+      background: rgba(255, 158, 0, 0.1);
+      color: var(--warning);
+    }
+
+    .action-buttons .btn-adjust:hover {
+      background: var(--warning);
+      color: white;
+    }
+
+    .action-buttons .btn-details {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--primary);
+    }
+
+    .action-buttons .btn-details:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* LOW STOCK ALERTS */
+    .alerts-container {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+    }
+
+    .alerts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .alerts-header h3 {
+      font-size: 18px;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alerts-header h3 .badge {
+      background: var(--danger);
+      color: white;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .alert-list {
+      list-style: none;
+    }
+
+    .alert-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      border-bottom: 1px solid var(--light-gray);
+      transition: var(--transition);
+    }
+
+    .alert-item:hover {
+      background: rgba(247, 37, 133, 0.05);
+    }
+
+    .alert-item:last-child {
+      border-bottom: none;
+    }
+
+    .alert-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .alert-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(247, 37, 133, 0.1);
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .alert-details h4 {
+      font-size: 15px;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+
+    .alert-details p {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .alert-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease;
+      overflow: hidden;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+      color: var(--dark);
+    }
+
+    .close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .close:hover {
+      color: var(--danger);
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .current-stock {
+      background: rgba(67, 97, 238, 0.05);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+    }
+
+    .current-stock h4 {
+      font-size: 14px;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .current-stock .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .modal-footer {
+      padding: 20px 25px;
+      border-top: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .pagination button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--light-gray);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      color: var(--dark);
+    }
+
+    .pagination button:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .stock-charts {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px;
+      }
+      
+      .sidebar-header h2,
+      .nav-item span {
+        display: none;
+      }
+      
+      .main {
+        margin-left: 70px;
+      }
+      
+      .topbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      .search-box input {
+        width: 100%;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .table-filters {
+        flex-wrap: wrap;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .stock-summary {
+        grid-template-columns: 1fr;
+      }
+      
+      .main {
+        padding: 15px;
+      }
+      
+      .modal-content {
+        margin: 20px;
+        width: calc(100% - 40px);
+      }
+      
+      .alert-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .alert-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <i class="fas fa-boxes"></i>
+    <h2>Inventory Pro</h2>
+  </div>
+  
+  <div class="sidebar-nav">
+    <a href="dashboard.html" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="product.html" class="nav-item">
+      <i class="fas fa-box"></i>
+      <span>Products</span>
+    </a>
+    <a href="stock.html" class="nav-item active">
+      <i class="fas fa-warehouse"></i>
+      <span>Stock</span>
+    </a>
+    <a href="users.html" class="nav-item">
+      <i class="fas fa-users"></i>
+      <span>Users</span>
+    </a>
+     <a href="roles.html" class="nav-item active">
+      <i class="fas fa-user-tag"></i>
+      <span>Roles</span>
+    </a>
+    <a href="reports.html" class="nav-item">
+      <i class="fas fa-chart-bar"></i>
+      <span>Reports</span>
+    </a>
+    <a href="settings.html" class="nav-item">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">
+      <h1>Stock Management</h1>
+      <p>Monitor and manage your inventory stock levels</p>
+    </div>
+    
+    <div class="actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search stock items...">
+      </div>
+      
+      <button class="btn btn-primary" onclick="openRestockModal()">
+        <i class="fas fa-truck-loading"></i>
+        Bulk Restock
+      </button>
+    </div>
+  </div>
+
+  <!-- Stock Summary Cards -->
+  <div class="stock-summary">
+    <div class="summary-card total">
+      <div class="summary-header">
+        <div class="summary-content">
+          <h3>Total Stock Value</h3>
+          <div class="summary-value">$48,250</div>
+          <div class="summary-change positive">
+            <i class="fas fa-arrow-up"></i>
+            12.5% from last month
+          </div>
+        </div>
+        <div class="summary-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="summary-card low-stock">
+      <div class="summary-header">
+        <div class="summary-content">
+          <h3>Low Stock Items</h3>
+          <div class="summary-value">8</div>
+          <div class="summary-change negative">
+            <i class="fas fa-arrow-up"></i>
+            3 need urgent attention
+          </div>
+        </div>
+        <div class="summary-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="summary-card out-of-stock">
+      <div class="summary-header">
+        <div class="summary-content">
+          <h3>Out of Stock</h3>
+          <div class="summary-value">3</div>
+          <div class="summary-change positive">
+            <i class="fas fa-arrow-down"></i>
+            2 restocked today
+          </div>
+        </div>
+        <div class="summary-icon">
+          <i class="fas fa-times-circle"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="summary-card recent">
+      <div class="summary-header">
+        <div class="summary-content">
+          <h3>Recent Movements</h3>
+          <div class="summary-value">42</div>
+          <div class="summary-change positive">
+            <i class="fas fa-arrow-up"></i>
+            18 today
+          </div>
+        </div>
+        <div class="summary-icon">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Charts -->
+  <div class="stock-charts">
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3>Stock Level Trends</h3>
+        <div class="chart-actions">
+          <select id="trendPeriod">
+            <option>Last 30 days</option>
+            <option>Last 90 days</option>
+            <option>Last 6 months</option>
+            <option>This year</option>
+          </select>
+        </div>
+      </div>
+      <canvas id="stockTrendChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3>Stock by Category</h3>
+      </div>
+      <canvas id="stockCategoryChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Low Stock Alerts -->
+  <div class="alerts-container">
+    <div class="alerts-header">
+      <h3>
+        <i class="fas fa-bell"></i>
+        Low Stock Alerts
+        <span class="badge">8</span>
+      </h3>
+      <button class="btn btn-warning" onclick="exportAlerts()">
+        <i class="fas fa-download"></i>
+        Export Alerts
+      </button>
+    </div>
+    
+    <ul class="alert-list" id="alertList">
+      <!-- Alerts will be populated by JavaScript -->
+    </ul>
+  </div>
+
+  <!-- Stock Table -->
+  <div class="stock-table-container">
+    <div class="table-header">
+      <h3>All Stock Items</h3>
+      <div class="table-filters">
+        <select class="filter-select" id="categoryFilter">
+          <option value="">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Home">Home & Kitchen</option>
+          <option value="Books">Books</option>
+        </select>
+        <select class="filter-select" id="statusFilter">
+          <option value="">All Status</option>
+          <option value="In Stock">In Stock</option>
+          <option value="Low Stock">Low Stock</option>
+          <option value="Out of Stock">Out of Stock</option>
+        </select>
+        <button class="btn btn-success" onclick="exportStockReport()">
+          <i class="fas fa-file-export"></i>
+          Export Report
+        </button>
+      </div>
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Current Stock</th>
+          <th>Min. Required</th>
+          <th>Status</th>
+          <th>Last Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="stockTableBody">
+        <!-- Table rows will be added by JavaScript -->
+      </tbody>
+    </table>
+    
+    <div class="pagination">
+      <button id="prevPage"><i class="fas fa-chevron-left"></i></button>
+      <button class="active">1</button>
+      <button>2</button>
+      <button>3</button>
+      <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Restock Modal -->
+  <div class="modal" id="restockModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Restock Product</h2>
+        <button class="close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="current-stock">
+          <h4>Current Stock</h4>
+          <div class="value" id="currentStockValue">0 units</div>
+        </div>
+        
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="restockProduct" placeholder="Select product" readonly>
+          <button class="btn" style="margin-top: 10px; width: 100%;" onclick="openProductSelector()">
+            <i class="fas fa-search"></i>
+            Select Product
+          </button>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity to Add</label>
+            <input type="number" id="restockQuantity" placeholder="Enter quantity" min="1">
+          </div>
+          
+          <div class="form-group">
+            <label>Supplier</label>
+            <select id="restockSupplier">
+              <option value="">Select Supplier</option>
+              <option value="Supplier A">Supplier A</option>
+              <option value="Supplier B">Supplier B</option>
+              <option value="Supplier C">Supplier C</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Cost per Unit ($)</label>
+          <input type="number" id="restockCost" placeholder="0.00" step="0.01">
+        </div>
+        
+        <div class="form-group">
+          <label>Expected Delivery Date</label>
+          <input type="date" id="restockDate">
+        </div>
+        
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="restockNotes" rows="3" placeholder="Add any notes about this restock..."></textarea>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="processRestock()">Process Restock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Adjust Stock Modal -->
+  <div class="modal" id="adjustModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Adjust Stock Level</h2>
+        <button class="close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="current-stock">
+          <h4>Current Stock: <span id="adjustCurrentStock">0</span> units</h4>
+          <div class="value" id="adjustProductName">Product Name</div>
+        </div>
+        
+        <div class="form-group">
+          <label>Adjustment Type</label>
+          <select id="adjustmentType">
+            <option value="add">Add Stock</option>
+            <option value="remove">Remove Stock</option>
+            <option value="set">Set Stock Level</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="adjustQuantity" placeholder="Enter quantity" min="1">
+        </div>
+        
+        <div class="form-group">
+          <label>Reason</label>
+          <select id="adjustReason">
+            <option value="damaged">Damaged Goods</option>
+            <option value="lost">Lost Items</option>
+            <option value="count_error">Count Error</option>
+            <option value="return">Customer Return</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="adjustNotes" rows="3" placeholder="Explain the reason for adjustment..."></textarea>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="processAdjustment()">Apply Adjustment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Stock Data
+  const stockData = [
+    { 
+      id: 1, 
+      name: "iPhone 13 Pro", 
+      sku: "IP13P-256-BLK", 
+      category: "Electronics", 
+      currentStock: 25, 
+      minRequired: 10, 
+      maxCapacity: 100,
+      status: "In Stock",
+      lastUpdated: "2024-01-15",
+      value: 24999.75
+    },
+    { 
+      id: 2, 
+      name: "Samsung Galaxy S22", 
+      sku: "SGS22-128-BLU", 
+      category: "Electronics", 
+      currentStock: 8, 
+      minRequired: 15, 
+      maxCapacity: 80,
+      status: "Low Stock",
+      lastUpdated: "2024-01-14",
+      value: 15999.20
+    },
+    { 
+      id: 3, 
+      name: "Nike Air Max", 
+      sku: "NAMAX-10-WHT", 
+      category: "Clothing", 
+      currentStock: 42, 
+      minRequired: 20, 
+      maxCapacity: 200,
+      status: "In Stock",
+      lastUpdated: "2024-01-13",
+      value: 5459.58
+    },
+    { 
+      id: 4, 
+      name: "MacBook Pro 14\"", 
+      sku: "MBP14-512-SLV", 
+      category: "Electronics", 
+      currentStock: 5, 
+      minRequired: 8, 
+      maxCapacity: 50,
+      status: "Low Stock",
+      lastUpdated: "2024-01-15",
+      value: 39999.75
+    },
+    { 
+      id: 5, 
+      name: "Coffee Maker", 
+      sku: "CMKR-DRP-BLK", 
+      category: "Home", 
+      currentStock: 0, 
+      minRequired: 5, 
+      maxCapacity: 40,
+      status: "Out of Stock",
+      lastUpdated: "2024-01-10",
+      value: 0
+    },
+    { 
+      id: 6, 
+      name: "Wireless Headphones", 
+      sku: "WHDP-NC-BLK", 
+      category: "Electronics", 
+      currentStock: 35, 
+      minRequired: 15, 
+      maxCapacity: 100,
+      status: "In Stock",
+      lastUpdated: "2024-01-14",
+      value: 6999.65
+    },
+    { 
+      id: 7, 
+      name: "Office Chair", 
+      sku: "OFCH-ERG-BLK", 
+      category: "Home", 
+      currentStock: 12, 
+      minRequired: 10, 
+      maxCapacity: 50,
+      status: "In Stock",
+      lastUpdated: "2024-01-12",
+      value: 11999.40
+    },
+    { 
+      id: 8, 
+      name: "Gaming Mouse", 
+      sku: "GMSE-RGB-BLK", 
+      category: "Electronics", 
+      currentStock: 3, 
+      minRequired: 12, 
+      maxCapacity: 60,
+      status: "Low Stock",
+      lastUpdated: "2024-01-15",
+      value: 899.97
+    }
+  ];
+
+  // Low Stock Alerts
+  const lowStockAlerts = [
+    { id: 1, product: "Samsung Galaxy S22", current: 8, required: 15, daysLeft: 2 },
+    { id: 2, product: "MacBook Pro 14\"", current: 5, required: 8, daysLeft: 3 },
+    { id: 3, product: "Gaming Mouse", current: 3, required: 12, daysLeft: 1 },
+    { id: 4, product: "Coffee Maker", current: 0, required: 5, daysLeft: 0 },
+    { id: 5, product: "Wireless Earbuds", current: 7, required: 20, daysLeft: 5 },
+    { id: 6, product: "Desk Lamp", current: 4, required: 10, daysLeft: 2 },
+    { id: 7, product: "Notebooks (Pack of 10)", current: 9, required: 25, daysLeft: 7 },
+    { id: 8, product: "Monitor Stand", current: 6, required: 15, daysLeft: 4 }
+  ];
+
+  let currentProductId = null;
+
+  // Initialize Charts
+  function initCharts() {
+    // Stock Trend Chart
+    const trendCtx = document.getElementById('stockTrendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [
+          {
+            label: 'Electronics',
+            data: [45, 52, 48, 55],
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Clothing',
+            data: [35, 38, 32, 40],
+            borderColor: '#7209b7',
+            backgroundColor: 'rgba(114, 9, 183, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Home',
+            data: [25, 28, 30, 32],
+            borderColor: '#4cc9f0',
+            backgroundColor: 'rgba(76, 201, 240, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            title: {
+              display: true,
+              text: 'Stock Units'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+
+    // Stock Category Chart
+    const categoryCtx = document.getElementById('stockCategoryChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
+        datasets: [{
+          data: [48, 25, 15, 8, 4],
+          backgroundColor: [
+            '#4361ee',
+            '#7209b7',
+            '#4cc9f0',
+            '#f72585',
+            '#ff9e00'
+          ],
+          borderWidth: 0,
+          hoverOffset: 15
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+
+  // Render Alerts
+  function renderAlerts() {
+    const alertList = document.getElementById('alertList');
+    alertList.innerHTML = '';
+
+    lowStockAlerts.forEach(alert => {
+      const alertItem = document.createElement('li');
+      alertItem.className = 'alert-item';
+      
+      const urgencyClass = alert.daysLeft <= 2 ? 'urgent' : 'warning';
+      const urgencyText = alert.daysLeft <= 2 ? 'URGENT' : 'Warning';
+      
+      alertItem.innerHTML = `
+        <div class="alert-info">
+          <div class="alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="alert-details">
+            <h4>${alert.product}</h4>
+            <p>Current: ${alert.current} | Required: ${alert.required} | Stockout in: ${alert.daysLeft} day(s)</p>
+          </div>
+        </div>
+        <div class="alert-actions">
+          <button class="btn btn-warning" onclick="restockProduct('${alert.product}')">
+            <i class="fas fa-truck-loading"></i>
+            Restock
+          </button>
+          <button class="btn btn-danger" onclick="ignoreAlert(${alert.id})">
+            <i class="fas fa-times"></i>
+            Dismiss
+          </button>
+        </div>
+      `;
+      
+      alertList.appendChild(alertItem);
+    });
+  }
+
+  // Render Stock Table
+  function renderStockTable() {
+    const tbody = document.getElementById('stockTableBody');
+    tbody.innerHTML = '';
+
+    stockData.forEach((item, index) => {
+      // Calculate stock percentage
+      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
+      let progressClass = 'high';
+      let statusClass = 'status-in-stock';
+      
+      if (stockPercentage <= 10) {
+        progressClass = 'low';
+        statusClass = 'status-out-of-stock';
+      } else if (stockPercentage <= 30) {
+        progressClass = 'medium';
+        statusClass = 'status-low-stock';
+      }
+      
+      if (item.currentStock === 0) {
+        statusClass = 'status-out-of-stock';
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${item.name}</strong>
+          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
+        </td>
+        <td>${item.sku}</td>
+        <td>${item.category}</td>
+        <td>
+          <div>${item.currentStock} units</div>
+          <div class="stock-progress">
+            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
+          </div>
+        </td>
+        <td>${item.minRequired}</td>
+        <td>
+          <span class="stock-status ${statusClass}">
+            <span class="stock-indicator"></span>
+            ${item.status}
+          </span>
+        </td>
+        <td>${item.lastUpdated}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
+              <i class="fas fa-truck-loading"></i>
+            </button>
+            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
+              <i class="fas fa-sliders-h"></i>
+            </button>
+            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  // Open Restock Modal
+  function openRestockModal(productId = null) {
+    currentProductId = productId;
+    const modal = document.getElementById('restockModal');
+    
+    if (productId) {
+      const product = stockData.find(p => p.id === productId);
+      if (product) {
+        document.getElementById('restockProduct').value = product.name;
+        document.getElementById('currentStockValue').textContent = `${product.currentStock} units`;
+      }
+    } else {
+      document.getElementById('restockProduct').value = '';
+      document.getElementById('currentStockValue').textContent = 'Select a product';
+    }
+    
+    clearRestockForm();
+    modal.style.display = 'flex';
+  }
+
+  // Open Adjust Modal
+  function openAdjustModal(productId) {
+    currentProductId = productId;
+    const modal = document.getElementById('adjustModal');
+    const product = stockData.find(p => p.id === productId);
+    
+    if (product) {
+      document.getElementById('adjustProductName').textContent = product.name;
+      document.getElementById('adjustCurrentStock').textContent = product.currentStock;
+    }
+    
+    modal.style.display = 'flex';
+  }
+
+  // Close Modal
+  function closeModal() {
+    document.getElementById('restockModal').style.display = 'none';
+    document.getElementById('adjustModal').style.display = 'none';
+    currentProductId = null;
+  }
+
+  // Clear Restock Form
+  function clearRestockForm() {
+    document.getElementById('restockQuantity').value = '';
+    document.getElementById('restockSupplier').value = '';
+    document.getElementById('restockCost').value = '';
+    document.getElementById('restockDate').value = '';
+    document.getElementById('restockNotes').value = '';
+  }
+
+  // Process Restock
+  function processRestock() {
+    const quantity = parseInt(document.getElementById('restockQuantity').value);
+    const supplier = document.getElementById('restockSupplier').value;
+    const cost = parseFloat(document.getElementById('restockCost').value);
+    const date = document.getElementById('restockDate').value;
+    const notes = document.getElementById('restockNotes').value;
+
+    if (!quantity || quantity <= 0) {
+      showNotification('Please enter a valid quantity!', 'danger');
+      return;
+    }
+
+    if (!currentProductId) {
+      showNotification('Please select a product first!', 'danger');
+      return;
+    }
+
+    // Find product and update stock
+    const productIndex = stockData.findIndex(p => p.id === currentProductId);
+    if (productIndex !== -1) {
+      stockData[productIndex].currentStock += quantity;
+      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
+      
+      // Update status
+      if (stockData[productIndex].currentStock <= stockData[productIndex].minRequired) {
+        stockData[productIndex].status = 'Low Stock';
+      } else if (stockData[productIndex].currentStock === 0) {
+        stockData[productIndex].status = 'Out of Stock';
+      } else {
+        stockData[productIndex].status = 'In Stock';
+      }
+    }
+
+    // Show success message
+    showNotification(`Successfully restocked ${quantity} units!`, 'success');
+    
+    // Update UI
+    renderStockTable();
+    renderAlerts();
+    closeModal();
+  }
+
+  // Process Adjustment
+  function processAdjustment() {
+    const type = document.getElementById('adjustmentType').value;
+    const quantity = parseInt(document.getElementById('adjustQuantity').value);
+    const reason = document.getElementById('adjustReason').value;
+    const notes = document.getElementById('adjustNotes').value;
+
+    if (!quantity || quantity <= 0) {
+      showNotification('Please enter a valid quantity!', 'danger');
+      return;
+    }
+
+    if (!currentProductId) {
+      showNotification('Please select a product!', 'danger');
+      return;
+    }
+
+    // Find product
+    const productIndex = stockData.findIndex(p => p.id === currentProductId);
+    if (productIndex !== -1) {
+      let newStock = stockData[productIndex].currentStock;
+      
+      switch (type) {
+        case 'add':
+          newStock += quantity;
+          break;
+        case 'remove':
+          newStock = Math.max(0, newStock - quantity);
+          break;
+        case 'set':
+          newStock = quantity;
+          break;
+      }
+
+      stockData[productIndex].currentStock = newStock;
+      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
+      
+      // Update status
+      if (stockData[productIndex].currentStock <= stockData[productIndex].minRequired) {
+        stockData[productIndex].status = 'Low Stock';
+      } else if (stockData[productIndex].currentStock === 0) {
+        stockData[productIndex].status = 'Out of Stock';
+      } else {
+        stockData[productIndex].status = 'In Stock';
+      }
+    }
+
+    // Show success message
+    showNotification(`Stock level adjusted successfully!`, 'success');
+    
+    // Update UI
+    renderStockTable();
+    renderAlerts();
+    closeModal();
+  }
+
+  // Restock Product from Alert
+  function restockProduct(productName) {
+    const product = stockData.find(p => p.name === productName);
+    if (product) {
+      openRestockModal(product.id);
+    }
+  }
+
+  // Ignore Alert
+  function ignoreAlert(alertId) {
+    const index = lowStockAlerts.findIndex(a => a.id === alertId);
+    if (index !== -1) {
+      lowStockAlerts.splice(index, 1);
+      renderAlerts();
+      showNotification('Alert dismissed!', 'warning');
+    }
+  }
+
+  // View Stock Details
+  function viewStockDetails(productId) {
+    const product = stockData.find(p => p.id === productId);
+    if (product) {
+      const details = `
+Product: ${product.name}
+SKU: ${product.sku}
+Category: ${product.category}
+Current Stock: ${product.currentStock} units
+Minimum Required: ${product.minRequired} units
+Maximum Capacity: ${product.maxCapacity} units
+Status: ${product.status}
+Last Updated: ${product.lastUpdated}
+Stock Value: $${product.value.toFixed(2)}
+      `;
+      alert(details);
+    }
+  }
+
+  // Export Alerts
+  function exportAlerts() {
+    showNotification('Exporting alerts to CSV...', 'success');
+    // In a real app, this would generate and download a CSV file
+  }
+
+  // Export Stock Report
+  function exportStockReport() {
+    showNotification('Generating stock report...', 'success');
+    // In a real app, this would generate and download a report
+  }
+
+  // Show Notification
+  function showNotification(message, type = 'success') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-${type}`;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#2ecc71' : '#f72585'};
+      color: white;
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideInRight 0.3s ease;
+    `;
+    
+    notification.innerHTML = `
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+      <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  }
+
+  // Filter Stock Table
+  function filterStockTable() {
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    const filteredData = stockData.filter(item => {
+      return (!category || item.category === category) && 
+             (!status || item.status === status);
+    });
+    
+    // Re-render table with filtered data
+    const tbody = document.getElementById('stockTableBody');
+    tbody.innerHTML = '';
+
+    filteredData.forEach((item, index) => {
+      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
+      let progressClass = 'high';
+      let statusClass = 'status-in-stock';
+      
+      if (stockPercentage <= 10) {
+        progressClass = 'low';
+        statusClass = 'status-out-of-stock';
+      } else if (stockPercentage <= 30) {
+        progressClass = 'medium';
+        statusClass = 'status-low-stock';
+      }
+      
+      if (item.currentStock === 0) {
+        statusClass = 'status-out-of-stock';
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${item.name}</strong>
+          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
+        </td>
+        <td>${item.sku}</td>
+        <td>${item.category}</td>
+        <td>
+          <div>${item.currentStock} units</div>
+          <div class="stock-progress">
+            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
+          </div>
+        </td>
+        <td>${item.minRequired}</td>
+        <td>
+          <span class="stock-status ${statusClass}">
+            <span class="stock-indicator"></span>
+            ${item.status}
+          </span>
+        </td>
+        <td>${item.lastUpdated}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
+              <i class="fas fa-truck-loading"></i>
+            </button>
+            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
+              <i class="fas fa-sliders-h"></i>
+            </button>
+            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  // Search Functionality
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = stockData.filter(item => 
+      item.name.toLowerCase().includes(searchTerm) ||
+      item.sku.toLowerCase().includes(searchTerm) ||
+      item.category.toLowerCase().includes(searchTerm)
+    );
+    
+    // Re-render table with filtered data
+    const tbody = document.getElementById('stockTableBody');
+    tbody.innerHTML = '';
+
+    filteredData.forEach((item, index) => {
+      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
+      let progressClass = 'high';
+      let statusClass = 'status-in-stock';
+      
+      if (stockPercentage <= 10) {
+        progressClass = 'low';
+        statusClass = 'status-out-of-stock';
+      } else if (stockPercentage <= 30) {
+        progressClass = 'medium';
+        statusClass = 'status-low-stock';
+      }
+      
+      if (item.currentStock === 0) {
+        statusClass = 'status-out-of-stock';
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${item.name}</strong>
+          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
+        </td>
+        <td>${item.sku}</td>
+        <td>${item.category}</td>
+        <td>
+          <div>${item.currentStock} units</div>
+          <div class="stock-progress">
+            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
+          </div>
+        </td>
+        <td>${item.minRequired}</td>
+        <td>
+          <span class="stock-status ${statusClass}">
+            <span class="stock-indicator"></span>
+            ${item.status}
+          </span>
+        </td>
+        <td>${item.lastUpdated}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
+              <i class="fas fa-truck-loading"></i>
+            </button>
+            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
+              <i class="fas fa-sliders-h"></i>
+            </button>
+            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  });
+
+  // Add animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    initCharts();
+    renderAlerts();
+    renderStockTable();
+    
+    // Add event listeners for filters
+    document.getElementById('categoryFilter').addEventListener('change', filterStockTable);
+    document.getElementById('statusFilter').addEventListener('change', filterStockTable);
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const restockModal = document.getElementById('restockModal');
+      const adjustModal = document.getElementById('adjustModal');
+      
+      if (event.target === restockModal || event.target === adjustModal) {
+        closeModal();
+      }
+    };
+  });
+</script>
+
+</body>
+</html>
