@@ -207,6 +207,11 @@
       color: white;
     }
 
+    .btn-info {
+      background: linear-gradient(to right, var(--info), #3d7bd9);
+      color: white;
+    }
+
     /* STOCK SUMMARY CARDS */
     .stock-summary {
       display: grid;
@@ -349,25 +354,6 @@
       color: var(--dark);
     }
 
-    .chart-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .chart-actions select {
-      padding: 8px 12px;
-      border: 1px solid var(--light-gray);
-      border-radius: 8px;
-      background: white;
-      font-size: 14px;
-      color: var(--gray);
-    }
-
-    .chart-actions select:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
     /* STOCK TABLE */
     .stock-table-container {
       background: white;
@@ -383,6 +369,8 @@
       align-items: center;
       padding: 20px;
       border-bottom: 1px solid var(--light-gray);
+      flex-wrap: wrap;
+      gap: 15px;
     }
 
     .table-header h3 {
@@ -393,6 +381,7 @@
     .table-filters {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .filter-select {
@@ -402,11 +391,6 @@
       background: white;
       font-size: 14px;
       color: var(--gray);
-    }
-
-    .filter-select:focus {
-      outline: none;
-      border-color: var(--primary);
     }
 
     table {
@@ -597,44 +581,6 @@
       background: rgba(247, 37, 133, 0.05);
     }
 
-    .alert-item:last-child {
-      border-bottom: none;
-    }
-
-    .alert-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .alert-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: rgba(247, 37, 133, 0.1);
-      color: var(--danger);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .alert-details h4 {
-      font-size: 15px;
-      color: var(--dark);
-      margin-bottom: 3px;
-    }
-
-    .alert-details p {
-      font-size: 13px;
-      color: var(--gray);
-    }
-
-    .alert-actions {
-      display: flex;
-      gap: 10px;
-    }
-
     /* MODAL */
     .modal {
       display: none;
@@ -660,7 +606,7 @@
       background: white;
       border-radius: var(--border-radius);
       width: 100%;
-      max-width: 500px;
+      max-width: 550px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       animation: slideUp 0.3s ease;
       overflow: hidden;
@@ -738,11 +684,107 @@
       gap: 15px;
     }
 
+    /* SLIDER STYLES */
+    .slider-container {
+      margin-top: 15px;
+    }
+
+    .slider {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: var(--light-gray);
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+      transition: var(--transition);
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: var(--primary-dark);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .quantity-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 2px solid var(--light-gray);
+      background: white;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .quantity-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .quantity-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--dark);
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .quantity-presets {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .preset-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--light-gray);
+      border-radius: 20px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: var(--transition);
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.05);
+      color: var(--primary);
+    }
+
     .current-stock {
       background: rgba(67, 97, 238, 0.05);
       padding: 15px;
       border-radius: var(--border-radius);
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .current-stock h4 {
@@ -752,9 +794,29 @@
     }
 
     .current-stock .value {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--primary);
+    }
+
+    .new-stock-preview {
+      background: rgba(76, 201, 240, 0.1);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .new-stock-preview h4 {
+      font-size: 14px;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .new-stock-preview .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--success);
     }
 
     .modal-footer {
@@ -763,45 +825,6 @@
       display: flex;
       justify-content: flex-end;
       gap: 15px;
-    }
-
-    /* PAGINATION */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 30px;
-    }
-
-    .pagination button {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--light-gray);
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition);
-      color: var(--dark);
-    }
-
-    .pagination button:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .pagination button.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-
-    .pagination button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
 
     /* RESPONSIVE */
@@ -868,11 +891,6 @@
         align-items: flex-start;
         gap: 15px;
       }
-      
-      .alert-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
     }
   </style>
 </head>
@@ -901,7 +919,7 @@
       <i class="fas fa-users"></i>
       <span>Users</span>
     </a>
-     <a href="roles.html" class="nav-item">
+    <a href="roles.html" class="nav-item">
       <i class="fas fa-user-tag"></i>
       <span>Roles</span>
     </a>
@@ -928,11 +946,6 @@
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Search stock items...">
       </div>
-      
-      <button class="btn btn-primary" onclick="openRestockModal()">
-        <i class="fas fa-truck-loading"></i>
-        Bulk Restock
-      </button>
     </div>
   </div>
 
@@ -1008,14 +1021,6 @@
     <div class="chart-container">
       <div class="chart-header">
         <h3>Stock Level Trends</h3>
-        <div class="chart-actions">
-          <select id="trendPeriod">
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
-            <option>Last 6 months</option>
-            <option>This year</option>
-          </select>
-        </div>
       </div>
       <canvas id="stockTrendChart"></canvas>
     </div>
@@ -1036,10 +1041,6 @@
         Low Stock Alerts
         <span class="badge">8</span>
       </h3>
-      <button class="btn btn-warning" onclick="exportAlerts()">
-        <i class="fas fa-download"></i>
-        Export Alerts
-      </button>
     </div>
     
     <ul class="alert-list" id="alertList">
@@ -1065,402 +1066,158 @@
           <option value="Low Stock">Low Stock</option>
           <option value="Out of Stock">Out of Stock</option>
         </select>
-        <button class="btn btn-success" onclick="exportStockReport()">
-          <i class="fas fa-file-export"></i>
-          Export Report
-        </button>
       </div>
     </div>
     
-    <table>
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>SKU</th>
-          <th>Category</th>
-          <th>Current Stock</th>
-          <th>Min. Required</th>
-          <th>Status</th>
-          <th>Last Updated</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="stockTableBody">
-        <!-- Table rows will be added by JavaScript -->
-      </tbody>
-    </table>
-    
-    <div class="pagination">
-      <button id="prevPage"><i class="fas fa-chevron-left"></i></button>
-      <button class="active">1</button>
-      <button>2</button>
-      <button>3</button>
-      <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Min. Required</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="stockTableBody">
+          <!-- Table rows will be added by JavaScript -->
+        </tbody>
+      </table>
     </div>
   </div>
+</div>
 
-  <!-- Restock Modal -->
-  <div class="modal" id="restockModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Restock Product</h2>
-        <button class="close" onclick="closeModal()">&times;</button>
+<!-- Restock Modal with Slider -->
+<div class="modal" id="restockModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-truck-loading"></i> Restock Product</h2>
+      <button class="close" onclick="closeModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="current-stock">
+        <h4>Current Stock Level</h4>
+        <div class="value" id="currentStockValue">0 units</div>
       </div>
       
-      <div class="modal-body">
-        <div class="current-stock">
-          <h4>Current Stock</h4>
-          <div class="value" id="currentStockValue">0 units</div>
+      <div class="form-group">
+        <label>Product</label>
+        <input type="text" id="restockProductName" readonly style="background: #f8f9fa;">
+      </div>
+      
+      <div class="form-group">
+        <label>Quantity to Add</label>
+        <div class="quantity-controls">
+          <button class="quantity-btn" onclick="adjustQuantity(-10)">-10</button>
+          <button class="quantity-btn" onclick="adjustQuantity(-5)">-5</button>
+          <button class="quantity-btn" onclick="adjustQuantity(-1)">-1</button>
+          <span class="quantity-value" id="quantityValue">0</span>
+          <button class="quantity-btn" onclick="adjustQuantity(1)">+1</button>
+          <button class="quantity-btn" onclick="adjustQuantity(5)">+5</button>
+          <button class="quantity-btn" onclick="adjustQuantity(10)">+10</button>
         </div>
         
-        <div class="form-group">
-          <label>Product Name</label>
-          <input type="text" id="restockProduct" placeholder="Select product" readonly>
-          <button class="btn" style="margin-top: 10px; width: 100%;" onclick="openProductSelector()">
-            <i class="fas fa-search"></i>
-            Select Product
-          </button>
+        <div class="slider-container">
+          <input type="range" id="quantitySlider" class="slider" min="0" max="500" value="0" step="1" oninput="updateQuantityFromSlider(this.value)">
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label>Quantity to Add</label>
-            <input type="number" id="restockQuantity" placeholder="Enter quantity" min="1">
-          </div>
-          
-          <div class="form-group">
-            <label>Supplier</label>
-            <select id="restockSupplier">
-              <option value="">Select Supplier</option>
-              <option value="Supplier A">Supplier A</option>
-              <option value="Supplier B">Supplier B</option>
-              <option value="Supplier C">Supplier C</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+        <div class="quantity-presets">
+          <button class="preset-btn" onclick="setQuantity(25)">25 units</button>
+          <button class="preset-btn" onclick="setQuantity(50)">50 units</button>
+          <button class="preset-btn" onclick="setQuantity(100)">100 units</button>
+          <button class="preset-btn" onclick="setQuantity(250)">250 units</button>
+          <button class="preset-btn" onclick="setQuantity(500)">500 units</button>
         </div>
-        
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
           <label>Cost per Unit ($)</label>
           <input type="number" id="restockCost" placeholder="0.00" step="0.01">
         </div>
         
         <div class="form-group">
-          <label>Expected Delivery Date</label>
-          <input type="date" id="restockDate">
-        </div>
-        
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="restockNotes" rows="3" placeholder="Add any notes about this restock..."></textarea>
+          <label>Supplier</label>
+          <select id="restockSupplier">
+            <option value="">Select Supplier</option>
+            <option value="Tech Distributors">Tech Distributors</option>
+            <option value="Global Imports">Global Imports</option>
+            <option value="Local Wholesale">Local Wholesale</option>
+            <option value="Manufacturer Direct">Manufacturer Direct</option>
+          </select>
         </div>
       </div>
       
-      <div class="modal-footer">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="processRestock()">Process Restock</button>
+      <div class="form-group">
+        <label>Expected Delivery Date</label>
+        <input type="date" id="restockDate">
+      </div>
+      
+      <div class="new-stock-preview">
+        <h4>New Stock Level After Restock</h4>
+        <div class="value" id="newStockPreview">0 units</div>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="restockNotes" rows="3" placeholder="Add any notes about this restock..."></textarea>
       </div>
     </div>
-  </div>
-
-  <!-- Adjust Stock Modal -->
-  <div class="modal" id="adjustModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Adjust Stock Level</h2>
-        <button class="close" onclick="closeModal()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="current-stock">
-          <h4>Current Stock: <span id="adjustCurrentStock">0</span> units</h4>
-          <div class="value" id="adjustProductName">Product Name</div>
-        </div>
-        
-        <div class="form-group">
-          <label>Adjustment Type</label>
-          <select id="adjustmentType">
-            <option value="add">Add Stock</option>
-            <option value="remove">Remove Stock</option>
-            <option value="set">Set Stock Level</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label>Quantity</label>
-          <input type="number" id="adjustQuantity" placeholder="Enter quantity" min="1">
-        </div>
-        
-        <div class="form-group">
-          <label>Reason</label>
-          <select id="adjustReason">
-            <option value="damaged">Damaged Goods</option>
-            <option value="lost">Lost Items</option>
-            <option value="count_error">Count Error</option>
-            <option value="return">Customer Return</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="adjustNotes" rows="3" placeholder="Explain the reason for adjustment..."></textarea>
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="processAdjustment()">Apply Adjustment</button>
-      </div>
+    
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="processRestock()">
+        <i class="fas fa-check"></i> Confirm Restock
+      </button>
     </div>
   </div>
 </div>
 
 <script>
   // Stock Data
-  const stockData = [
-    { 
-      id: 1, 
-      name: "iPhone 13 Pro", 
-      sku: "IP13P-256-BLK", 
-      category: "Electronics", 
-      currentStock: 25, 
-      minRequired: 10, 
-      maxCapacity: 100,
-      status: "In Stock",
-      lastUpdated: "2024-01-15",
-      value: 24999.75
-    },
-    { 
-      id: 2, 
-      name: "Samsung Galaxy S22", 
-      sku: "SGS22-128-BLU", 
-      category: "Electronics", 
-      currentStock: 8, 
-      minRequired: 15, 
-      maxCapacity: 80,
-      status: "Low Stock",
-      lastUpdated: "2024-01-14",
-      value: 15999.20
-    },
-    { 
-      id: 3, 
-      name: "Nike Air Max", 
-      sku: "NAMAX-10-WHT", 
-      category: "Clothing", 
-      currentStock: 42, 
-      minRequired: 20, 
-      maxCapacity: 200,
-      status: "In Stock",
-      lastUpdated: "2024-01-13",
-      value: 5459.58
-    },
-    { 
-      id: 4, 
-      name: "MacBook Pro 14\"", 
-      sku: "MBP14-512-SLV", 
-      category: "Electronics", 
-      currentStock: 5, 
-      minRequired: 8, 
-      maxCapacity: 50,
-      status: "Low Stock",
-      lastUpdated: "2024-01-15",
-      value: 39999.75
-    },
-    { 
-      id: 5, 
-      name: "Coffee Maker", 
-      sku: "CMKR-DRP-BLK", 
-      category: "Home", 
-      currentStock: 0, 
-      minRequired: 5, 
-      maxCapacity: 40,
-      status: "Out of Stock",
-      lastUpdated: "2024-01-10",
-      value: 0
-    },
-    { 
-      id: 6, 
-      name: "Wireless Headphones", 
-      sku: "WHDP-NC-BLK", 
-      category: "Electronics", 
-      currentStock: 35, 
-      minRequired: 15, 
-      maxCapacity: 100,
-      status: "In Stock",
-      lastUpdated: "2024-01-14",
-      value: 6999.65
-    },
-    { 
-      id: 7, 
-      name: "Office Chair", 
-      sku: "OFCH-ERG-BLK", 
-      category: "Home", 
-      currentStock: 12, 
-      minRequired: 10, 
-      maxCapacity: 50,
-      status: "In Stock",
-      lastUpdated: "2024-01-12",
-      value: 11999.40
-    },
-    { 
-      id: 8, 
-      name: "Gaming Mouse", 
-      sku: "GMSE-RGB-BLK", 
-      category: "Electronics", 
-      currentStock: 3, 
-      minRequired: 12, 
-      maxCapacity: 60,
-      status: "Low Stock",
-      lastUpdated: "2024-01-15",
-      value: 899.97
-    }
+  let stockData = [
+    { id: 1, name: "iPhone 13 Pro", sku: "IP13P-256-BLK", category: "Electronics", currentStock: 25, minRequired: 10, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-15", value: 24999.75 },
+    { id: 2, name: "Samsung Galaxy S22", sku: "SGS22-128-BLU", category: "Electronics", currentStock: 8, minRequired: 15, maxCapacity: 80, status: "Low Stock", lastUpdated: "2024-01-14", value: 15999.20 },
+    { id: 3, name: "Nike Air Max", sku: "NAMAX-10-WHT", category: "Clothing", currentStock: 42, minRequired: 20, maxCapacity: 200, status: "In Stock", lastUpdated: "2024-01-13", value: 5459.58 },
+    { id: 4, name: "MacBook Pro 14\"", sku: "MBP14-512-SLV", category: "Electronics", currentStock: 5, minRequired: 8, maxCapacity: 50, status: "Low Stock", lastUpdated: "2024-01-15", value: 39999.75 },
+    { id: 5, name: "Coffee Maker", sku: "CMKR-DRP-BLK", category: "Home", currentStock: 0, minRequired: 5, maxCapacity: 40, status: "Out of Stock", lastUpdated: "2024-01-10", value: 0 },
+    { id: 6, name: "Wireless Headphones", sku: "WHDP-NC-BLK", category: "Electronics", currentStock: 35, minRequired: 15, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-14", value: 6999.65 },
+    { id: 7, name: "Office Chair", sku: "OFCH-ERG-BLK", category: "Home", currentStock: 12, minRequired: 10, maxCapacity: 50, status: "In Stock", lastUpdated: "2024-01-12", value: 11999.40 },
+    { id: 8, name: "Gaming Mouse", sku: "GMSE-RGB-BLK", category: "Electronics", currentStock: 3, minRequired: 12, maxCapacity: 60, status: "Low Stock", lastUpdated: "2024-01-15", value: 899.97 }
   ];
 
-  // Low Stock Alerts
-  const lowStockAlerts = [
-    { id: 1, product: "Samsung Galaxy S22", current: 8, required: 15, daysLeft: 2 },
-    { id: 2, product: "MacBook Pro 14\"", current: 5, required: 8, daysLeft: 3 },
-    { id: 3, product: "Gaming Mouse", current: 3, required: 12, daysLeft: 1 },
-    { id: 4, product: "Coffee Maker", current: 0, required: 5, daysLeft: 0 },
-    { id: 5, product: "Wireless Earbuds", current: 7, required: 20, daysLeft: 5 },
-    { id: 6, product: "Desk Lamp", current: 4, required: 10, daysLeft: 2 },
-    { id: 7, product: "Notebooks (Pack of 10)", current: 9, required: 25, daysLeft: 7 },
-    { id: 8, product: "Monitor Stand", current: 6, required: 15, daysLeft: 4 }
-  ];
-
-  let currentProductId = null;
+  let currentRestockProduct = null;
+  let currentQuantity = 0;
 
   // Initialize Charts
   function initCharts() {
-    // Stock Trend Chart
     const trendCtx = document.getElementById('stockTrendChart').getContext('2d');
-    const trendChart = new Chart(trendCtx, {
+    new Chart(trendCtx, {
       type: 'line',
       data: {
         labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
         datasets: [
-          {
-            label: 'Electronics',
-            data: [45, 52, 48, 55],
-            borderColor: '#4361ee',
-            backgroundColor: 'rgba(67, 97, 238, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-          },
-          {
-            label: 'Clothing',
-            data: [35, 38, 32, 40],
-            borderColor: '#7209b7',
-            backgroundColor: 'rgba(114, 9, 183, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-          },
-          {
-            label: 'Home',
-            data: [25, 28, 30, 32],
-            borderColor: '#4cc9f0',
-            backgroundColor: 'rgba(76, 201, 240, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-          }
+          { label: 'Electronics', data: [45, 52, 48, 55], borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', borderWidth: 3, fill: true, tension: 0.4 },
+          { label: 'Clothing', data: [35, 38, 32, 40], borderColor: '#7209b7', backgroundColor: 'rgba(114, 9, 183, 0.1)', borderWidth: 3, fill: true, tension: 0.4 },
+          { label: 'Home', data: [25, 28, 30, 32], borderColor: '#4cc9f0', backgroundColor: 'rgba(76, 201, 240, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }
         ]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: false,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
-            },
-            title: {
-              display: true,
-              text: 'Stock Units'
-            }
-          },
-          x: {
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
-            }
-          }
-        }
-      }
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 
-    // Stock Category Chart
     const categoryCtx = document.getElementById('stockCategoryChart').getContext('2d');
-    const categoryChart = new Chart(categoryCtx, {
+    new Chart(categoryCtx, {
       type: 'doughnut',
       data: {
         labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
-        datasets: [{
-          data: [48, 25, 15, 8, 4],
-          backgroundColor: [
-            '#4361ee',
-            '#7209b7',
-            '#4cc9f0',
-            '#f72585',
-            '#ff9e00'
-          ],
-          borderWidth: 0,
-          hoverOffset: 15
-        }]
+        datasets: [{ data: [48, 25, 15, 8, 4], backgroundColor: ['#4361ee', '#7209b7', '#4cc9f0', '#f72585', '#ff9e00'], borderWidth: 0, hoverOffset: 15 }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }
-    });
-  }
-
-  // Render Alerts
-  function renderAlerts() {
-    const alertList = document.getElementById('alertList');
-    alertList.innerHTML = '';
-
-    lowStockAlerts.forEach(alert => {
-      const alertItem = document.createElement('li');
-      alertItem.className = 'alert-item';
-      
-      const urgencyClass = alert.daysLeft <= 2 ? 'urgent' : 'warning';
-      const urgencyText = alert.daysLeft <= 2 ? 'URGENT' : 'Warning';
-      
-      alertItem.innerHTML = `
-        <div class="alert-info">
-          <div class="alert-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="alert-details">
-            <h4>${alert.product}</h4>
-            <p>Current: ${alert.current} | Required: ${alert.required} | Stockout in: ${alert.daysLeft} day(s)</p>
-          </div>
-        </div>
-        <div class="alert-actions">
-          <button class="btn btn-warning" onclick="restockProduct('${alert.product}')">
-            <i class="fas fa-truck-loading"></i>
-            Restock
-          </button>
-          <button class="btn btn-danger" onclick="ignoreAlert(${alert.id})">
-            <i class="fas fa-times"></i>
-            Dismiss
-          </button>
-        </div>
-      `;
-      
-      alertList.appendChild(alertItem);
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
   }
 
@@ -1469,478 +1226,219 @@
     const tbody = document.getElementById('stockTableBody');
     tbody.innerHTML = '';
 
-    stockData.forEach((item, index) => {
-      // Calculate stock percentage
+    stockData.forEach(item => {
       const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
       let progressClass = 'high';
       let statusClass = 'status-in-stock';
       
-      if (stockPercentage <= 10) {
-        progressClass = 'low';
-        statusClass = 'status-out-of-stock';
-      } else if (stockPercentage <= 30) {
-        progressClass = 'medium';
-        statusClass = 'status-low-stock';
-      }
+      if (stockPercentage <= 10) { progressClass = 'low'; statusClass = 'status-out-of-stock'; }
+      else if (stockPercentage <= 30) { progressClass = 'medium'; statusClass = 'status-low-stock'; }
       
-      if (item.currentStock === 0) {
-        statusClass = 'status-out-of-stock';
-      }
+      if (item.currentStock === 0) statusClass = 'status-out-of-stock';
 
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>
-          <strong>${item.name}</strong>
-          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
-        </td>
+        <td><strong>${item.name}</strong><div style="font-size: 12px; color: var(--gray);">SKU: ${item.sku}</div></td>
         <td>${item.sku}</td>
         <td>${item.category}</td>
-        <td>
-          <div>${item.currentStock} units</div>
-          <div class="stock-progress">
-            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
-          </div>
-        </td>
+        <td><div>${item.currentStock} units</div><div class="stock-progress"><div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div></div></td>
         <td>${item.minRequired}</td>
-        <td>
-          <span class="stock-status ${statusClass}">
-            <span class="stock-indicator"></span>
-            ${item.status}
-          </span>
-        </td>
+        <td><span class="stock-status ${statusClass}"><span class="stock-indicator"></span>${item.status}</span></td>
         <td>${item.lastUpdated}</td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
-              <i class="fas fa-truck-loading"></i>
-            </button>
-            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
-              <i class="fas fa-sliders-h"></i>
-            </button>
-            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
-              <i class="fas fa-eye"></i>
-            </button>
-          </div>
-        </td>
+        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
       `;
-      
       tbody.appendChild(row);
     });
   }
 
-  // Open Restock Modal
-  function openRestockModal(productId = null) {
-    currentProductId = productId;
-    const modal = document.getElementById('restockModal');
+  // Open Restock Modal with Slider
+  function openRestockModal(productId) {
+    currentRestockProduct = stockData.find(p => p.id === productId);
+    if (!currentRestockProduct) return;
     
-    if (productId) {
-      const product = stockData.find(p => p.id === productId);
-      if (product) {
-        document.getElementById('restockProduct').value = product.name;
-        document.getElementById('currentStockValue').textContent = `${product.currentStock} units`;
-      }
-    } else {
-      document.getElementById('restockProduct').value = '';
-      document.getElementById('currentStockValue').textContent = 'Select a product';
-    }
+    currentQuantity = 0;
+    document.getElementById('restockProductName').value = currentRestockProduct.name;
+    document.getElementById('currentStockValue').textContent = `${currentRestockProduct.currentStock} units`;
+    document.getElementById('quantityValue').textContent = '0';
+    document.getElementById('quantitySlider').value = '0';
+    document.getElementById('newStockPreview').textContent = `${currentRestockProduct.currentStock} units`;
+    document.getElementById('restockCost').value = '';
+    document.getElementById('restockSupplier').value = '';
+    document.getElementById('restockDate').value = '';
+    document.getElementById('restockNotes').value = '';
     
-    clearRestockForm();
-    modal.style.display = 'flex';
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('restockDate').value = today;
+    
+    document.getElementById('restockModal').style.display = 'flex';
   }
 
-  // Open Adjust Modal
-  function openAdjustModal(productId) {
-    currentProductId = productId;
-    const modal = document.getElementById('adjustModal');
-    const product = stockData.find(p => p.id === productId);
+  // Adjust quantity with buttons
+  function adjustQuantity(delta) {
+    let newQuantity = currentQuantity + delta;
+    if (newQuantity < 0) newQuantity = 0;
+    if (newQuantity > 1000) newQuantity = 1000;
+    setQuantity(newQuantity);
+  }
+
+  // Set specific quantity
+  function setQuantity(quantity) {
+    currentQuantity = quantity;
+    document.getElementById('quantityValue').textContent = currentQuantity;
+    document.getElementById('quantitySlider').value = currentQuantity;
     
-    if (product) {
-      document.getElementById('adjustProductName').textContent = product.name;
-      document.getElementById('adjustCurrentStock').textContent = product.currentStock;
+    const newStock = currentRestockProduct.currentStock + currentQuantity;
+    document.getElementById('newStockPreview').textContent = `${newStock} units`;
+    
+    // Add visual feedback
+    const previewDiv = document.querySelector('.new-stock-preview');
+    previewDiv.style.transform = 'scale(1.02)';
+    setTimeout(() => { previewDiv.style.transform = 'scale(1)'; }, 200);
+  }
+
+  // Update quantity from slider
+  function updateQuantityFromSlider(value) {
+    currentQuantity = parseInt(value);
+    document.getElementById('quantityValue').textContent = currentQuantity;
+    
+    const newStock = currentRestockProduct.currentStock + currentQuantity;
+    document.getElementById('newStockPreview').textContent = `${newStock} units`;
+  }
+
+  // Process Restock
+  function processRestock() {
+    if (!currentRestockProduct) {
+      showNotification('No product selected!', 'danger');
+      return;
     }
     
-    modal.style.display = 'flex';
+    if (currentQuantity <= 0) {
+      showNotification('Please select a quantity to restock!', 'warning');
+      return;
+    }
+    
+    const cost = parseFloat(document.getElementById('restockCost').value);
+    const supplier = document.getElementById('restockSupplier').value;
+    const deliveryDate = document.getElementById('restockDate').value;
+    const notes = document.getElementById('restockNotes').value;
+    
+    // Update stock
+    const productIndex = stockData.findIndex(p => p.id === currentRestockProduct.id);
+    if (productIndex !== -1) {
+      stockData[productIndex].currentStock += currentQuantity;
+      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
+      
+      // Update status based on new quantity
+      if (stockData[productIndex].currentStock <= 0) {
+        stockData[productIndex].status = 'Out of Stock';
+      } else if (stockData[productIndex].currentStock < stockData[productIndex].minRequired) {
+        stockData[productIndex].status = 'Low Stock';
+      } else {
+        stockData[productIndex].status = 'In Stock';
+      }
+      
+      // Update value
+      if (cost > 0) {
+        stockData[productIndex].value = stockData[productIndex].currentStock * cost;
+      }
+    }
+    
+    // Show success message with details
+    const totalCost = cost > 0 ? ` Total cost: $${(currentQuantity * cost).toLocaleString()}.` : '';
+    showNotification(`Successfully restocked ${currentQuantity} units of ${currentRestockProduct.name}!${totalCost}`, 'success');
+    
+    closeModal();
+    renderStockTable();
   }
 
   // Close Modal
   function closeModal() {
     document.getElementById('restockModal').style.display = 'none';
-    document.getElementById('adjustModal').style.display = 'none';
-    currentProductId = null;
-  }
-
-  // Clear Restock Form
-  function clearRestockForm() {
-    document.getElementById('restockQuantity').value = '';
-    document.getElementById('restockSupplier').value = '';
-    document.getElementById('restockCost').value = '';
-    document.getElementById('restockDate').value = '';
-    document.getElementById('restockNotes').value = '';
-  }
-
-  // Process Restock
-  function processRestock() {
-    const quantity = parseInt(document.getElementById('restockQuantity').value);
-    const supplier = document.getElementById('restockSupplier').value;
-    const cost = parseFloat(document.getElementById('restockCost').value);
-    const date = document.getElementById('restockDate').value;
-    const notes = document.getElementById('restockNotes').value;
-
-    if (!quantity || quantity <= 0) {
-      showNotification('Please enter a valid quantity!', 'danger');
-      return;
-    }
-
-    if (!currentProductId) {
-      showNotification('Please select a product first!', 'danger');
-      return;
-    }
-
-    // Find product and update stock
-    const productIndex = stockData.findIndex(p => p.id === currentProductId);
-    if (productIndex !== -1) {
-      stockData[productIndex].currentStock += quantity;
-      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
-      
-      // Update status
-      if (stockData[productIndex].currentStock <= stockData[productIndex].minRequired) {
-        stockData[productIndex].status = 'Low Stock';
-      } else if (stockData[productIndex].currentStock === 0) {
-        stockData[productIndex].status = 'Out of Stock';
-      } else {
-        stockData[productIndex].status = 'In Stock';
-      }
-    }
-
-    // Show success message
-    showNotification(`Successfully restocked ${quantity} units!`, 'success');
-    
-    // Update UI
-    renderStockTable();
-    renderAlerts();
-    closeModal();
-  }
-
-  // Process Adjustment
-  function processAdjustment() {
-    const type = document.getElementById('adjustmentType').value;
-    const quantity = parseInt(document.getElementById('adjustQuantity').value);
-    const reason = document.getElementById('adjustReason').value;
-    const notes = document.getElementById('adjustNotes').value;
-
-    if (!quantity || quantity <= 0) {
-      showNotification('Please enter a valid quantity!', 'danger');
-      return;
-    }
-
-    if (!currentProductId) {
-      showNotification('Please select a product!', 'danger');
-      return;
-    }
-
-    // Find product
-    const productIndex = stockData.findIndex(p => p.id === currentProductId);
-    if (productIndex !== -1) {
-      let newStock = stockData[productIndex].currentStock;
-      
-      switch (type) {
-        case 'add':
-          newStock += quantity;
-          break;
-        case 'remove':
-          newStock = Math.max(0, newStock - quantity);
-          break;
-        case 'set':
-          newStock = quantity;
-          break;
-      }
-
-      stockData[productIndex].currentStock = newStock;
-      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
-      
-      // Update status
-      if (stockData[productIndex].currentStock <= stockData[productIndex].minRequired) {
-        stockData[productIndex].status = 'Low Stock';
-      } else if (stockData[productIndex].currentStock === 0) {
-        stockData[productIndex].status = 'Out of Stock';
-      } else {
-        stockData[productIndex].status = 'In Stock';
-      }
-    }
-
-    // Show success message
-    showNotification(`Stock level adjusted successfully!`, 'success');
-    
-    // Update UI
-    renderStockTable();
-    renderAlerts();
-    closeModal();
-  }
-
-  // Restock Product from Alert
-  function restockProduct(productName) {
-    const product = stockData.find(p => p.name === productName);
-    if (product) {
-      openRestockModal(product.id);
-    }
-  }
-
-  // Ignore Alert
-  function ignoreAlert(alertId) {
-    const index = lowStockAlerts.findIndex(a => a.id === alertId);
-    if (index !== -1) {
-      lowStockAlerts.splice(index, 1);
-      renderAlerts();
-      showNotification('Alert dismissed!', 'warning');
-    }
-  }
-
-  // View Stock Details
-  function viewStockDetails(productId) {
-    const product = stockData.find(p => p.id === productId);
-    if (product) {
-      const details = `
-Product: ${product.name}
-SKU: ${product.sku}
-Category: ${product.category}
-Current Stock: ${product.currentStock} units
-Minimum Required: ${product.minRequired} units
-Maximum Capacity: ${product.maxCapacity} units
-Status: ${product.status}
-Last Updated: ${product.lastUpdated}
-Stock Value: $${product.value.toFixed(2)}
-      `;
-      alert(details);
-    }
-  }
-
-  // Export Alerts
-  function exportAlerts() {
-    showNotification('Exporting alerts to CSV...', 'success');
-    // In a real app, this would generate and download a CSV file
-  }
-
-  // Export Stock Report
-  function exportStockReport() {
-    showNotification('Generating stock report...', 'success');
-    // In a real app, this would generate and download a report
+    currentRestockProduct = null;
+    currentQuantity = 0;
   }
 
   // Show Notification
   function showNotification(message, type = 'success') {
-    // Create notification element
     const notification = document.createElement('div');
-    notification.className = `notification-${type}`;
     notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${type === 'success' ? '#2ecc71' : '#f72585'};
-      color: white;
-      padding: 15px 20px;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      position: fixed; top: 20px; right: 20px;
+      background: ${type === 'success' ? '#2ecc71' : type === 'danger' ? '#f72585' : '#ff9e00'};
+      color: white; padding: 15px 20px; border-radius: 12px;
+      z-index: 10000; display: flex; align-items: center; gap: 10px;
       animation: slideInRight 0.3s ease;
     `;
-    
-    notification.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-      <span>${message}</span>
-    `;
-    
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${message}</span>`;
     document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
     setTimeout(() => {
       notification.style.animation = 'slideOutRight 0.3s ease';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
+      setTimeout(() => notification.remove(), 300);
     }, 3000);
   }
-
-  // Filter Stock Table
-  function filterStockTable() {
-    const category = document.getElementById('categoryFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    
-    const filteredData = stockData.filter(item => {
-      return (!category || item.category === category) && 
-             (!status || item.status === status);
-    });
-    
-    // Re-render table with filtered data
-    const tbody = document.getElementById('stockTableBody');
-    tbody.innerHTML = '';
-
-    filteredData.forEach((item, index) => {
-      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
-      let progressClass = 'high';
-      let statusClass = 'status-in-stock';
-      
-      if (stockPercentage <= 10) {
-        progressClass = 'low';
-        statusClass = 'status-out-of-stock';
-      } else if (stockPercentage <= 30) {
-        progressClass = 'medium';
-        statusClass = 'status-low-stock';
-      }
-      
-      if (item.currentStock === 0) {
-        statusClass = 'status-out-of-stock';
-      }
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <strong>${item.name}</strong>
-          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
-        </td>
-        <td>${item.sku}</td>
-        <td>${item.category}</td>
-        <td>
-          <div>${item.currentStock} units</div>
-          <div class="stock-progress">
-            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
-          </div>
-        </td>
-        <td>${item.minRequired}</td>
-        <td>
-          <span class="stock-status ${statusClass}">
-            <span class="stock-indicator"></span>
-            ${item.status}
-          </span>
-        </td>
-        <td>${item.lastUpdated}</td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
-              <i class="fas fa-truck-loading"></i>
-            </button>
-            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
-              <i class="fas fa-sliders-h"></i>
-            </button>
-            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
-              <i class="fas fa-eye"></i>
-            </button>
-          </div>
-        </td>
-      `;
-      
-      tbody.appendChild(row);
-    });
-  }
-
-  // Search Functionality
-  document.getElementById('searchInput').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredData = stockData.filter(item => 
-      item.name.toLowerCase().includes(searchTerm) ||
-      item.sku.toLowerCase().includes(searchTerm) ||
-      item.category.toLowerCase().includes(searchTerm)
-    );
-    
-    // Re-render table with filtered data
-    const tbody = document.getElementById('stockTableBody');
-    tbody.innerHTML = '';
-
-    filteredData.forEach((item, index) => {
-      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
-      let progressClass = 'high';
-      let statusClass = 'status-in-stock';
-      
-      if (stockPercentage <= 10) {
-        progressClass = 'low';
-        statusClass = 'status-out-of-stock';
-      } else if (stockPercentage <= 30) {
-        progressClass = 'medium';
-        statusClass = 'status-low-stock';
-      }
-      
-      if (item.currentStock === 0) {
-        statusClass = 'status-out-of-stock';
-      }
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <strong>${item.name}</strong>
-          <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">SKU: ${item.sku}</div>
-        </td>
-        <td>${item.sku}</td>
-        <td>${item.category}</td>
-        <td>
-          <div>${item.currentStock} units</div>
-          <div class="stock-progress">
-            <div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div>
-          </div>
-        </td>
-        <td>${item.minRequired}</td>
-        <td>
-          <span class="stock-status ${statusClass}">
-            <span class="stock-indicator"></span>
-            ${item.status}
-          </span>
-        </td>
-        <td>${item.lastUpdated}</td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock">
-              <i class="fas fa-truck-loading"></i>
-            </button>
-            <button class="btn-adjust" onclick="openAdjustModal(${item.id})" title="Adjust">
-              <i class="fas fa-sliders-h"></i>
-            </button>
-            <button class="btn-details" onclick="viewStockDetails(${item.id})" title="Details">
-              <i class="fas fa-eye"></i>
-            </button>
-          </div>
-        </td>
-      `;
-      
-      tbody.appendChild(row);
-    });
-  });
 
   // Add animations
   const style = document.createElement('style');
   style.textContent = `
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
   `;
   document.head.appendChild(style);
 
   // Initialize
   document.addEventListener('DOMContentLoaded', function() {
     initCharts();
-    renderAlerts();
     renderStockTable();
     
-    // Add event listeners for filters
-    document.getElementById('categoryFilter').addEventListener('change', filterStockTable);
-    document.getElementById('statusFilter').addEventListener('change', filterStockTable);
+    // Filter functionality
+    document.getElementById('categoryFilter').addEventListener('change', filterStock);
+    document.getElementById('statusFilter').addEventListener('change', filterStock);
+    document.getElementById('searchInput').addEventListener('input', filterStock);
     
-    // Close modal when clicking outside
+    // Close modal on outside click
     window.onclick = function(event) {
-      const restockModal = document.getElementById('restockModal');
-      const adjustModal = document.getElementById('adjustModal');
-      
-      if (event.target === restockModal || event.target === adjustModal) {
-        closeModal();
-      }
+      const modal = document.getElementById('restockModal');
+      if (event.target === modal) closeModal();
     };
   });
+
+  function filterStock() {
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    
+    const filtered = stockData.filter(item => {
+      const matchCategory = !category || item.category === category;
+      const matchStatus = !status || item.status === status;
+      const matchSearch = !search || item.name.toLowerCase().includes(search) || item.sku.toLowerCase().includes(search);
+      return matchCategory && matchStatus && matchSearch;
+    });
+    
+    const tbody = document.getElementById('stockTableBody');
+    tbody.innerHTML = '';
+    
+    filtered.forEach(item => {
+      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
+      let progressClass = 'high';
+      let statusClass = 'status-in-stock';
+      
+      if (stockPercentage <= 10) { progressClass = 'low'; statusClass = 'status-out-of-stock'; }
+      else if (stockPercentage <= 30) { progressClass = 'medium'; statusClass = 'status-low-stock'; }
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${item.name}</strong><div style="font-size: 12px; color: var(--gray);">SKU: ${item.sku}</div></td>
+        <td>${item.sku}</td>
+        <td>${item.category}</td>
+        <td><div>${item.currentStock} units</div><div class="stock-progress"><div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div></div></td>
+        <td>${item.minRequired}</td>
+        <td><span class="stock-status ${statusClass}"><span class="stock-indicator"></span>${item.status}</span></td>
+        <td>${item.lastUpdated}</td>
+        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
 </script>
 
 </body>
