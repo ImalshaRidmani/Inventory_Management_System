@@ -1336,13 +1336,13 @@
         document.getElementById('userStatus').value = user.status;
         document.getElementById('phone').value = user.phone || '';
         document.getElementById('department').value = user.department || '';
-        document.getElementById('password').value = '';
-        document.getElementById('confirmPassword').value = '';
+        // document.getElementById('password').value = '';
+        // document.getElementById('confirmPassword').value = '';
       }
     } else {
       title.textContent = 'Add New User';
-      passwordLabel.classList.add('required');
-      passwordLabel.textContent = 'Password';
+      // passwordLabel.classList.add('required');
+      // passwordLabel.textContent = 'Password';
       clearUserForm();
     }
     
@@ -1364,8 +1364,8 @@
     document.getElementById('userStatus').value = 'Active';
     document.getElementById('phone').value = '';
     document.getElementById('department').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('confirmPassword').value = '';
+    // document.getElementById('password').value = '';
+    // document.getElementById('confirmPassword').value = '';
   }
 
   // Save User
@@ -1378,8 +1378,8 @@
     const status = document.getElementById('userStatus').value;
     const phone = document.getElementById('phone').value.trim();
     const department = document.getElementById('department').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    // const password = document.getElementById('password').value;
+    // const confirmPassword = document.getElementById('confirmPassword').value;
     
     // Validation
     if (!firstName || !lastName || !email || !username || !roleId) {
@@ -1387,20 +1387,20 @@
       return;
     }
     
-    if (!currentEditMode && (!password || !confirmPassword)) {
-      showNotification('Password is required for new users!', 'danger');
-      return;
-    }
+    // if (!currentEditMode && (!password || !confirmPassword)) {
+    //   showNotification('Password is required for new users!', 'danger');
+    //   return;
+    // }
     
-    if (password && password !== confirmPassword) {
-      showNotification('Passwords do not match!', 'danger');
-      return;
-    }
+    // if (password && password !== confirmPassword) {
+    //   showNotification('Passwords do not match!', 'danger');
+    //   return;
+    // }
     
-    if (password && password.length < 8) {
-      showNotification('Password must be at least 8 characters long!', 'danger');
-      return;
-    }
+    // if (password && password.length < 8) {
+    //   showNotification('Password must be at least 8 characters long!', 'danger');
+    //   return;
+    // }
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1453,7 +1453,7 @@
         avatarColor: randomColor
       };
       users.push(newUser);
-      showNotification('User created successfully!', 'success');
+      showNotification('User created successfully! User will receive an email to set their password.', 'success');
     }
     
     closeModal();
