@@ -3,7 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
+// const userRoutes = require("./routes/userRoutes");
+const User = require("./models/User");
 
 const app = express();
 
@@ -20,7 +21,26 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/api/users", userRoutes);
+// app.use("/api/users", userRoutes);
+
+
+
+app.get("/create-test-user", async (req, res) => {
+  try {
+    const user = new User({
+      username: "testuser1",
+      email: "test1@mail.com",
+      password: "123456"
+    });
+
+    await user.save();
+
+    res.send("User created successfully");
+  } catch (err) {
+    console.log(err);
+    res.send("Error creating user");
+  }
+});
 
 // port
 const PORT = process.env.PORT || 5000;
