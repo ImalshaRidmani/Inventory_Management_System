@@ -1,979 +1,1007 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Management | Inventory Pro</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #4361ee;
-      --primary-dark: #3a56d4;
-      --secondary: #7209b7;
-      --light: #f8f9fa;
-      --dark: #212529;
-      --gray: #6c757d;
-      --light-gray: #e9ecef;
-      --success: #4cc9f0;
-      --danger: #f72585;
-      --warning: #ff9e00;
-      --info: #4895ef;
-      --border-radius: 12px;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      --transition: all 0.3s ease;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      background: #f5f7fa;
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* SIDEBAR */
-    .sidebar {
-      width: 260px;
-      background: white;
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      border-right: 1px solid var(--light-gray);
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-      box-shadow: var(--shadow);
-    }
-
-    .sidebar-header {
-      padding: 25px 20px;
-      border-bottom: 1px solid var(--light-gray);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .sidebar-header i {
-      font-size: 28px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      /* -webkit-background-clip: text; */
-      -webkit-text-fill-color: transparent;
-    }
-
-    .sidebar-header h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--dark);
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 20px 0;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px 25px;
-      text-decoration: none;
-      color: var(--gray);
-      font-weight: 500;
-      transition: var(--transition);
-      border-left: 4px solid transparent;
-      margin: 2px 0;
-    }
-
-    .nav-item:hover {
-      background: rgba(67, 97, 238, 0.05);
-      color: var(--primary);
-      border-left-color: var(--primary);
-    }
-
-    .nav-item.active {
-      background: rgba(67, 97, 238, 0.1);
-      color: var(--primary);
-      border-left-color: var(--primary);
-      font-weight: 600;
-    }
-
-    .nav-item i {
-      font-size: 18px;
-      width: 24px;
-    }
-
-    /* MAIN CONTENT */
-    .main {
-      margin-left: 260px;
-      flex: 1;
-      padding: 25px;
-      transition: var(--transition);
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .page-title h1 {
-      font-size: 28px;
-      color: var(--dark);
-      margin-bottom: 5px;
-    }
-
-    .page-title p {
-      color: var(--gray);
-      font-size: 14px;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .search-box {
-      position: relative;
-    }
-
-    .search-box i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--gray);
-    }
-
-    .search-box input {
-      padding: 12px 15px 12px 45px;
-      border: 1px solid var(--light-gray);
-      border-radius: var(--border-radius);
-      width: 280px;
-      font-size: 14px;
-      transition: var(--transition);
-    }
-
-    .search-box input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-    }
-
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: var(--border-radius);
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(to right, var(--primary), var(--primary-dark));
-      color: white;
-      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(67, 97, 238, 0.4);
-    }
-
-    .btn-success {
-      background: linear-gradient(to right, #2ecc71, #27ae60);
-      color: white;
-    }
-
-    .btn-warning {
-      background: linear-gradient(to right, var(--warning), #e68a00);
-      color: white;
-    }
-
-    .btn-danger {
-      background: linear-gradient(to right, var(--danger), #e71e6e);
-      color: white;
-    }
-
-    .btn-info {
-      background: linear-gradient(to right, var(--info), #3d7bd9);
-      color: white;
-    }
-
-    /* USER STATS */
-    .user-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 25px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: var(--border-radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-    }
-
-    .stat-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .stat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    .stat-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-    }
-
-    .stat-icon.primary {
-      background: rgba(67, 97, 238, 0.1);
-      color: var(--primary);
-    }
-
-    .stat-icon.success {
-      background: rgba(76, 201, 240, 0.1);
-      color: var(--success);
-    }
-
-    .stat-icon.warning {
-      background: rgba(255, 158, 0, 0.1);
-      color: var(--warning);
-    }
-
-    .stat-icon.danger {
-      background: rgba(247, 37, 133, 0.1);
-      color: var(--danger);
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--dark);
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--gray);
-    }
-
-    .stat-change {
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 8px;
-    }
-
-    .stat-change.positive {
-      color: #2ecc71;
-    }
-
-    .stat-change.negative {
-      color: var(--danger);
-    }
-
-    /* USER TABLE */
-    .user-table-container {
-      background: white;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      margin-bottom: 40px;
-    }
-
-    .table-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid var(--light-gray);
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .table-header h3 {
-      font-size: 18px;
-      color: var(--dark);
-    }
-
-    .table-filters {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .filter-select {
-      padding: 8px 12px;
-      border: 1px solid var(--light-gray);
-      border-radius: 8px;
-      background: white;
-      font-size: 14px;
-      color: var(--gray);
-      cursor: pointer;
-    }
-
-    .filter-select:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead {
-      background: #f8f9fa;
-    }
-
-    th {
-      padding: 18px 15px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--dark);
-      border-bottom: 1px solid var(--light-gray);
-      font-size: 14px;
-    }
-
-    td {
-      padding: 18px 15px;
-      border-bottom: 1px solid var(--light-gray);
-      color: var(--dark);
-      font-size: 14px;
-    }
-
-    tbody tr {
-      transition: var(--transition);
-    }
-
-    tbody tr:hover {
-      background: rgba(67, 97, 238, 0.03);
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      color: white;
-      font-size: 14px;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-details h4 {
-      font-size: 15px;
-      color: var(--dark);
-      margin-bottom: 3px;
-    }
-
-    .user-details p {
-      font-size: 12px;
-      color: var(--gray);
-    }
-
-    .role-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .role-badge i {
-      font-size: 10px;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .status-active {
-      background: rgba(76, 201, 240, 0.1);
-      color: var(--success);
-    }
-
-    .status-inactive {
-      background: rgba(247, 37, 133, 0.1);
-      color: var(--danger);
-    }
-
-    .status-pending {
-      background: rgba(255, 158, 0, 0.1);
-      color: var(--warning);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-buttons button {
-      width: 36px;
-      height: 36px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition);
-    }
-
-    .action-buttons .btn-edit {
-      background: rgba(76, 201, 240, 0.1);
-      color: var(--success);
-    }
-
-    .action-buttons .btn-edit:hover {
-      background: var(--success);
-      color: white;
-    }
-
-    .action-buttons .btn-role {
-      background: rgba(67, 97, 238, 0.1);
-      color: var(--primary);
-    }
-
-    .action-buttons .btn-role:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .action-buttons .btn-delete {
-      background: rgba(247, 37, 133, 0.1);
-      color: var(--danger);
-    }
-
-    .action-buttons .btn-delete:hover {
-      background: var(--danger);
-      color: white;
-    }
-
-    /* PAGINATION */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      padding: 20px;
-      border-top: 1px solid var(--light-gray);
-    }
-
-    .pagination button {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--light-gray);
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition);
-      color: var(--dark);
-    }
-
-    .pagination button:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .pagination button.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-
-    /* MODAL */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: var(--border-radius);
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      animation: slideUp 0.3s ease;
-      overflow: hidden;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .modal-header {
-      padding: 25px;
-      border-bottom: 1px solid var(--light-gray);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 10;
-    }
-
-    .modal-header h2 {
-      font-size: 22px;
-      color: var(--dark);
-    }
-
-    .close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: var(--gray);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .close:hover {
-      color: var(--danger);
-    }
-
-    .modal-body {
-      padding: 25px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--dark);
-      font-size: 14px;
-    }
-
-    .form-group label.required::after {
-      content: " *";
-      color: var(--danger);
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 12px 15px;
-      border: 2px solid var(--light-gray);
-      border-radius: var(--border-radius);
-      font-size: 15px;
-      transition: var(--transition);
-    }
-
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    .password-hint {
-      font-size: 12px;
-      color: var(--gray);
-      margin-top: 5px;
-    }
-
-    .modal-footer {
-      padding: 20px 25px;
-      border-top: 1px solid var(--light-gray);
-      display: flex;
-      justify-content: flex-end;
-      gap: 15px;
-      position: sticky;
-      bottom: 0;
-      background: white;
-    }
-
-    /* CHANGE ROLE MODAL */
-    .role-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .role-option {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 15px;
-      border: 2px solid var(--light-gray);
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .role-option:hover {
-      border-color: var(--primary);
-      background: rgba(67, 97, 238, 0.05);
-    }
-
-    .role-option.selected {
-      border-color: var(--primary);
-      background: rgba(67, 97, 238, 0.1);
-    }
-
-    .role-color {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-    }
-
-    .role-option-info h4 {
-      font-size: 16px;
-      color: var(--dark);
-      margin-bottom: 5px;
-    }
-
-    .role-option-info p {
-      font-size: 13px;
-      color: var(--gray);
-    }
-
-    .role-permissions {
-      font-size: 11px;
-      color: var(--gray);
-      margin-top: 5px;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 1024px) {
-      .form-row {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management | Inventory Pro</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+        --success: #4cc9f0;
+        --danger: #f72585;
+        --warning: #ff9e00;
+        --info: #4895ef;
+        --border-radius: 12px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
       }
-    }
 
-    @media (max-width: 768px) {
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      body {
+        background: #f5f7fa;
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* SIDEBAR */
       .sidebar {
-        width: 70px;
-      }
-      
-      .sidebar-header h2,
-      .nav-item span {
-        display: none;
-      }
-      
-      .main {
-        margin-left: 70px;
-      }
-      
-      .topbar {
+        width: 260px;
+        background: white;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        border-right: 1px solid var(--light-gray);
+        display: flex;
         flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+        z-index: 100;
+        box-shadow: var(--shadow);
       }
-      
-      .search-box input {
-        width: 100%;
-      }
-      
-      .table-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      table {
-        display: block;
-        overflow-x: auto;
-      }
-    }
 
-    @media (max-width: 576px) {
-      .user-stats {
-        grid-template-columns: 1fr;
+      .sidebar-header {
+        padding: 25px 20px;
+        border-bottom: 1px solid var(--light-gray);
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
-      
+
+      .sidebar-header i {
+        font-size: 28px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        /* -webkit-background-clip: text; */
+        -webkit-text-fill-color: transparent;
+      }
+
+      .sidebar-header h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 20px 0;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 25px;
+        text-decoration: none;
+        color: var(--gray);
+        font-weight: 500;
+        transition: var(--transition);
+        border-left: 4px solid transparent;
+        margin: 2px 0;
+      }
+
+      .nav-item:hover {
+        background: rgba(67, 97, 238, 0.05);
+        color: var(--primary);
+        border-left-color: var(--primary);
+      }
+
+      .nav-item.active {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-left-color: var(--primary);
+        font-weight: 600;
+      }
+
+      .nav-item i {
+        font-size: 18px;
+        width: 24px;
+      }
+
+      /* MAIN CONTENT */
       .main {
-        padding: 15px;
+        margin-left: 260px;
+        flex: 1;
+        padding: 25px;
+        transition: var(--transition);
       }
-      
-      .modal-content {
-        margin: 20px;
-        width: calc(100% - 40px);
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
       }
-      
-      .action-buttons {
+
+      .page-title h1 {
+        font-size: 28px;
+        color: var(--dark);
+        margin-bottom: 5px;
+      }
+
+      .page-title p {
+        color: var(--gray);
+        font-size: 14px;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .search-box {
+        position: relative;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+      }
+
+      .search-box input {
+        padding: 12px 15px 12px 45px;
+        border: 1px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        width: 280px;
+        font-size: 14px;
+        transition: var(--transition);
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(
+          to right,
+          var(--primary),
+          var(--primary-dark)
+        );
+        color: white;
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(67, 97, 238, 0.4);
+      }
+
+      .btn-success {
+        background: linear-gradient(to right, #2ecc71, #27ae60);
+        color: white;
+      }
+
+      .btn-warning {
+        background: linear-gradient(to right, var(--warning), #e68a00);
+        color: white;
+      }
+
+      .btn-danger {
+        background: linear-gradient(to right, var(--danger), #e71e6e);
+        color: white;
+      }
+
+      .btn-info {
+        background: linear-gradient(to right, var(--info), #3d7bd9);
+        color: white;
+      }
+
+      /* USER STATS */
+      .user-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+      }
+
+      .stat-icon.primary {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+      }
+
+      .stat-icon.success {
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--success);
+      }
+
+      .stat-icon.warning {
+        background: rgba(255, 158, 0, 0.1);
+        color: var(--warning);
+      }
+
+      .stat-icon.danger {
+        background: rgba(247, 37, 133, 0.1);
+        color: var(--danger);
+      }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        color: var(--gray);
+      }
+
+      .stat-change {
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+      }
+
+      .stat-change.positive {
+        color: #2ecc71;
+      }
+
+      .stat-change.negative {
+        color: var(--danger);
+      }
+
+      /* USER TABLE */
+      .user-table-container {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        margin-bottom: 40px;
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid var(--light-gray);
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .table-header h3 {
+        font-size: 18px;
+        color: var(--dark);
+      }
+
+      .table-filters {
+        display: flex;
+        gap: 10px;
         flex-wrap: wrap;
       }
-    }
-  </style>
-</head>
-<body>
 
-<div class="sidebar">
-  <div class="sidebar-header">
-    <i class="fas fa-boxes"></i>
-    <h2>Inventory Pro</h2>
-  </div>
-  
-  <div class="sidebar-nav">
-    <a href="dashboard.html" class="nav-item">
-      <i class="fas fa-home"></i>
-      <span>Dashboard</span>
-    </a>
-    <a href="product.html" class="nav-item">
-      <i class="fas fa-box"></i>
-      <span>Products</span>
-    </a>
-    <a href="stock.html" class="nav-item">
-      <i class="fas fa-warehouse"></i>
-      <span>Stock</span>
-    </a>
-    <a href="users.html" class="nav-item active">
-      <i class="fas fa-users"></i>
-      <span>Users</span>
-    </a>
-    <a href="roles.html" class="nav-item">
-      <i class="fas fa-user-tag"></i>
-      <span>Roles</span>
-    </a>
-    <a href="reports.html" class="nav-item">
-      <i class="fas fa-chart-bar"></i>
-      <span>Reports</span>
-    </a>
-    <a href="settings.html" class="nav-item">
-      <i class="fas fa-cog"></i>
-      <span>Settings</span>
-    </a>
-  </div>
-</div>
+      .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--light-gray);
+        border-radius: 8px;
+        background: white;
+        font-size: 14px;
+        color: var(--gray);
+        cursor: pointer;
+      }
 
-<div class="main">
-  <div class="topbar">
-    <div class="page-title">
-      <h1>User Management</h1>
-      <p>Create, manage, and assign roles to system users</p>
-    </div>
-    
-    <div class="actions">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search users...">
+      .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead {
+        background: #f8f9fa;
+      }
+
+      th {
+        padding: 18px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark);
+        border-bottom: 1px solid var(--light-gray);
+        font-size: 14px;
+      }
+
+      td {
+        padding: 18px 15px;
+        border-bottom: 1px solid var(--light-gray);
+        color: var(--dark);
+        font-size: 14px;
+      }
+
+      tbody tr {
+        transition: var(--transition);
+      }
+
+      tbody tr:hover {
+        background: rgba(67, 97, 238, 0.03);
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 14px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .user-details h4 {
+        font-size: 15px;
+        color: var(--dark);
+        margin-bottom: 3px;
+      }
+
+      .user-details p {
+        font-size: 12px;
+        color: var(--gray);
+      }
+
+      .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .role-badge i {
+        font-size: 10px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-active {
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--success);
+      }
+
+      .status-inactive {
+        background: rgba(247, 37, 133, 0.1);
+        color: var(--danger);
+      }
+
+      .status-pending {
+        background: rgba(255, 158, 0, 0.1);
+        color: var(--warning);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-buttons button {
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+      }
+
+      .action-buttons .btn-edit {
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--success);
+      }
+
+      .action-buttons .btn-edit:hover {
+        background: var(--success);
+        color: white;
+      }
+
+      .action-buttons .btn-role {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+      }
+
+      .action-buttons .btn-role:hover {
+        background: var(--primary);
+        color: white;
+      }
+
+      .action-buttons .btn-delete {
+        background: rgba(247, 37, 133, 0.1);
+        color: var(--danger);
+      }
+
+      .action-buttons .btn-delete:hover {
+        background: var(--danger);
+        color: white;
+      }
+
+      /* PAGINATION */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 20px;
+        border-top: 1px solid var(--light-gray);
+      }
+
+      .pagination button {
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--light-gray);
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        color: var(--dark);
+      }
+
+      .pagination button:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .pagination button.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      /* MODAL */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: var(--border-radius);
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+        overflow: hidden;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        padding: 25px;
+        border-bottom: 1px solid var(--light-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+      }
+
+      .modal-header h2 {
+        font-size: 22px;
+        color: var(--dark);
+      }
+
+      .close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: var(--gray);
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .close:hover {
+        color: var(--danger);
+      }
+
+      .modal-body {
+        padding: 25px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark);
+        font-size: 14px;
+      }
+
+      .form-group label.required::after {
+        content: " *";
+        color: var(--danger);
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        font-size: 15px;
+        transition: var(--transition);
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .password-hint {
+        font-size: 12px;
+        color: var(--gray);
+        margin-top: 5px;
+      }
+
+      .modal-footer {
+        padding: 20px 25px;
+        border-top: 1px solid var(--light-gray);
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        position: sticky;
+        bottom: 0;
+        background: white;
+      }
+
+      /* CHANGE ROLE MODAL */
+      .role-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .role-option {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border: 2px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .role-option:hover {
+        border-color: var(--primary);
+        background: rgba(67, 97, 238, 0.05);
+      }
+
+      .role-option.selected {
+        border-color: var(--primary);
+        background: rgba(67, 97, 238, 0.1);
+      }
+
+      .role-color {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+      }
+
+      .role-option-info h4 {
+        font-size: 16px;
+        color: var(--dark);
+        margin-bottom: 5px;
+      }
+
+      .role-option-info p {
+        font-size: 13px;
+        color: var(--gray);
+      }
+
+      .role-permissions {
+        font-size: 11px;
+        color: var(--gray);
+        margin-top: 5px;
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 1024px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 70px;
+        }
+
+        .sidebar-header h2,
+        .nav-item span {
+          display: none;
+        }
+
+        .main {
+          margin-left: 70px;
+        }
+
+        .topbar {
+          flex-direction: column;
+          gap: 15px;
+          align-items: flex-start;
+        }
+
+        .search-box input {
+          width: 100%;
+        }
+
+        .table-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .user-stats {
+          grid-template-columns: 1fr;
+        }
+
+        .main {
+          padding: 15px;
+        }
+
+        .modal-content {
+          margin: 20px;
+          width: calc(100% - 40px);
+        }
+
+        .action-buttons {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <i class="fas fa-boxes"></i>
+        <h2>Inventory Pro</h2>
       </div>
-      
-      <button class="btn btn-primary" onclick="openUserModal()">
-        <i class="fas fa-user-plus"></i>
-        Add User
-      </button>
-    </div>
-  </div>
 
-  <!-- User Statistics -->
-  <div class="user-stats">
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-value" id="totalUsers">0</div>
-        <div class="stat-icon primary">
+      <div class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="product.html" class="nav-item">
+          <i class="fas fa-box"></i>
+          <span>Products</span>
+        </a>
+        <a href="stock.html" class="nav-item">
+          <i class="fas fa-warehouse"></i>
+          <span>Stock</span>
+        </a>
+        <a href="users.html" class="nav-item active">
           <i class="fas fa-users"></i>
-        </div>
-      </div>
-      <div class="stat-label">Total Users</div>
-      <div class="stat-change positive">
-        <i class="fas fa-arrow-up"></i>
-        4 new this month
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-value" id="activeUsers">0</div>
-        <div class="stat-icon success">
-          <i class="fas fa-user-check"></i>
-        </div>
-      </div>
-      <div class="stat-label">Active Users</div>
-      <div class="stat-change positive">
-        <i class="fas fa-arrow-up"></i>
-        75% active rate
+          <span>Users</span>
+        </a>
+        <a href="roles.html" class="nav-item">
+          <i class="fas fa-user-tag"></i>
+          <span>Roles</span>
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fas fa-chart-bar"></i>
+          <span>Reports</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
       </div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-value" id="inactiveUsers">0</div>
-        <div class="stat-icon warning">
-          <i class="fas fa-user-clock"></i>
-        </div>
-      </div>
-      <div class="stat-label">Inactive Users</div>
-      <div class="stat-change negative">
-        <i class="fas fa-arrow-down"></i>
-        2 need review
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-value" id="adminCount">0</div>
-        <div class="stat-icon danger">
-          <i class="fas fa-user-shield"></i>
-        </div>
-      </div>
-      <div class="stat-label">Administrators</div>
-      <div class="stat-change positive">
-        <i class="fas fa-shield-alt"></i>
-        All active
-      </div>
-    </div>
-  </div>
 
-  <!-- User Table -->
-  <div class="user-table-container">
-    <div class="table-header">
-      <h3><i class="fas fa-list"></i> All Users</h3>
-      <div class="table-filters">
-        <select class="filter-select" id="roleFilter">
-          <option value="">All Roles</option>
-        </select>
-        <select class="filter-select" id="statusFilter">
-          <option value="">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Pending">Pending</option>
-        </select>
-        <button class="btn btn-success" onclick="exportUsers()">
-          <i class="fas fa-file-export"></i>
-          Export
-        </button>
-      </div>
-    </div>
-    
-    <div style="overflow-x: auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Last Login</th>
-            <th>Joined</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <!-- Users will be populated here -->
-        </tbody>
-       </table>
-    </div>
-    
-    <div class="pagination" id="pagination">
-      <!-- Pagination will be populated here -->
-    </div>
-  </div>
-</div>
+    <div class="main">
+      <div class="topbar">
+        <div class="page-title">
+          <h1>User Management</h1>
+          <p>Create, manage, and assign roles to system users</p>
+        </div>
 
-<!-- User Modal (Add/Edit User) -->
-<div class="modal" id="userModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="modalTitle">Add New User</h2>
-      <button class="close" onclick="closeModal()">&times;</button>
+        <div class="actions">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search users..." />
+          </div>
+
+          <button class="btn btn-primary" onclick="openUserModal()">
+            <i class="fas fa-user-plus"></i>
+            Add User
+          </button>
+        </div>
+      </div>
+
+      <!-- User Statistics -->
+      <div class="user-stats">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-value" id="totalUsers">0</div>
+            <div class="stat-icon primary">
+              <i class="fas fa-users"></i>
+            </div>
+          </div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            4 new this month
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-value" id="activeUsers">0</div>
+            <div class="stat-icon success">
+              <i class="fas fa-user-check"></i>
+            </div>
+          </div>
+          <div class="stat-label">Active Users</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            75% active rate
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-value" id="inactiveUsers">0</div>
+            <div class="stat-icon warning">
+              <i class="fas fa-user-clock"></i>
+            </div>
+          </div>
+          <div class="stat-label">Inactive Users</div>
+          <div class="stat-change negative">
+            <i class="fas fa-arrow-down"></i>
+            2 need review
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-value" id="adminCount">0</div>
+            <div class="stat-icon danger">
+              <i class="fas fa-user-shield"></i>
+            </div>
+          </div>
+          <div class="stat-label">Administrators</div>
+          <div class="stat-change positive">
+            <i class="fas fa-shield-alt"></i>
+            All active
+          </div>
+        </div>
+      </div>
+
+      <!-- User Table -->
+      <div class="user-table-container">
+        <div class="table-header">
+          <h3><i class="fas fa-list"></i> All Users</h3>
+          <div class="table-filters">
+            <select class="filter-select" id="roleFilter">
+              <option value="">All Roles</option>
+            </select>
+            <select class="filter-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Pending">Pending</option>
+            </select>
+            <button class="btn btn-success" onclick="exportUsers()">
+              <i class="fas fa-file-export"></i>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Last Login</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <!-- Users will be populated here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="pagination">
+          <!-- Pagination will be populated here -->
+        </div>
+      </div>
     </div>
-    
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="required">First Name</label>
-          <input type="text" id="firstName" placeholder="Enter first name">
+
+    <!-- User Modal (Add/Edit User) -->
+    <div class="modal" id="userModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New User</h2>
+          <button class="close" onclick="closeModal()">&times;</button>
         </div>
-        
-        <div class="form-group">
-          <label class="required">Last Name</label>
-          <input type="text" id="lastName" placeholder="Enter last name">
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label class="required">Email Address</label>
-        <input type="email" id="userEmail" placeholder="Enter email address">
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label class="required">Username</label>
-          <input type="text" id="username" placeholder="Enter username">
-        </div>
-        
-        <div class="form-group">
-          <label class="required">Role</label>
-          <select id="userRole">
-            <option value="">Select Role</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="form-row">
+
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="required">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                placeholder="Enter first name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="required">Last Name</label>
+              <input type="text" id="lastName" placeholder="Enter last name" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="required">Email Address</label>
+            <input
+              type="email"
+              id="userEmail"
+              placeholder="Enter email address"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="required">Username</label>
+              <input type="text" id="username" placeholder="Enter username" />
+            </div>
+
+            <div class="form-group">
+              <label class="required">Role</label>
+              <select id="userRole">
+                <option value="">Select Role</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- <div class="form-row">
         <div class="form-group">
           <label id="passwordLabel" class="required">Password</label>
           <input type="password" id="password" placeholder="Enter password">
@@ -984,148 +1012,208 @@
           <label class="required">Confirm Password</label>
           <input type="password" id="confirmPassword" placeholder="Confirm password">
         </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Phone Number</label>
-          <input type="tel" id="phone" placeholder="Enter phone number">
-        </div>
-        
-        <div class="form-group">
-          <label>Status</label>
-          <select id="userStatus">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Pending">Pending</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label>Department</label>
-        <input type="text" id="department" placeholder="Enter department">
-      </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
-    </div>
-  </div>
-</div>
+      </div> -->
 
-<!-- Change Role Modal -->
-<div class="modal" id="changeRoleModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Change User Role</h2>
-      <button class="close" onclick="closeModal()">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <div class="form-group">
-        <label>User</label>
-        <input type="text" id="changeRoleUserName" readonly style="background: #f8f9fa;">
-      </div>
-      
-      <div class="form-group">
-        <label>Select New Role</label>
-        <div class="role-list" id="roleList">
-          <!-- Roles will be populated here -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" id="phone" placeholder="Enter phone number" />
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select id="userStatus">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <input type="text" id="department" placeholder="Enter department" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveUser()">
+            Save User
+          </button>
         </div>
       </div>
     </div>
-    
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="updateUserRole()">Change Role</button>
+
+    <!-- Change Role Modal -->
+    <div class="modal" id="changeRoleModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Change User Role</h2>
+          <button class="close" onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>User</label>
+            <input
+              type="text"
+              id="changeRoleUserName"
+              readonly
+              style="background: #f8f9fa"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Select New Role</label>
+            <div class="role-list" id="roleList">
+              <!-- Roles will be populated here -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="updateUserRole()">
+            Change Role
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<script>
-  // Roles Data (should match roles.html)
-  let roles = [
-    { id: 1, name: "Administrator", description: "Full system access with all permissions", color: "#4361ee", level: 1 },
-    { id: 2, name: "Manager", description: "Can manage products, stock, and view reports", color: "#7209b7", level: 2 },
-    { id: 3, name: "Staff", description: "Basic access for daily operations", color: "#4cc9f0", level: 3 },
-    { id: 4, name: "Viewer", description: "Read-only access to view data", color: "#ff9e00", level: 4 }
-  ];
+    <script>
+      // Roles Data (should match roles.html)
+      let roles = [
+        {
+          id: 1,
+          name: "Administrator",
+          description: "Full system access with all permissions",
+          color: "#4361ee",
+          level: 1,
+        },
+        {
+          id: 2,
+          name: "Manager",
+          description: "Can manage products, stock, and view reports",
+          color: "#7209b7",
+          level: 2,
+        },
+        {
+          id: 3,
+          name: "Staff",
+          description: "Basic access for daily operations",
+          color: "#4cc9f0",
+          level: 3,
+        },
+        {
+          id: 4,
+          name: "Viewer",
+          description: "Read-only access to view data",
+          color: "#ff9e00",
+          level: 4,
+        },
+      ];
 
-  // Users Data
-  let users = [
-    { id: 1, firstName: "John", lastName: "Smith", email: "john.smith@company.com", username: "jsmith", roleId: 1, status: "Active", lastLogin: "2024-01-15 14:30", joinedDate: "2023-01-15", department: "IT", phone: "+1 (555) 123-4567", avatarColor: "#4361ee" },
-    { id: 2, firstName: "Sarah", lastName: "Johnson", email: "sarah.j@company.com", username: "sjohnson", roleId: 1, status: "Active", lastLogin: "2024-01-14 09:15", joinedDate: "2023-03-20", department: "Operations", phone: "+1 (555) 234-5678", avatarColor: "#7209b7" },
-    { id: 3, firstName: "Michael", lastName: "Brown", email: "m.brown@company.com", username: "mbrown", roleId: 2, status: "Active", lastLogin: "2024-01-13 16:45", joinedDate: "2023-05-10", department: "Warehouse", phone: "+1 (555) 345-6789", avatarColor: "#4cc9f0" },
-    { id: 4, firstName: "Emily", lastName: "Davis", email: "emily.d@company.com", username: "edavis", roleId: 2, status: "Inactive", lastLogin: "2023-12-05 11:20", joinedDate: "2023-06-15", department: "Sales", phone: "+1 (555) 456-7890", avatarColor: "#f72585" },
-    { id: 5, firstName: "David", lastName: "Wilson", email: "d.wilson@company.com", username: "dwilson", roleId: 3, status: "Active", lastLogin: "2024-01-12 13:10", joinedDate: "2023-08-22", department: "Finance", phone: "+1 (555) 567-8901", avatarColor: "#ff9e00" },
-    { id: 6, firstName: "Lisa", lastName: "Taylor", email: "lisa.t@company.com", username: "ltaylor", roleId: 3, status: "Pending", lastLogin: "Never", joinedDate: "2024-01-10", department: "HR", phone: "+1 (555) 678-9012", avatarColor: "#2ecc71" },
-    { id: 7, firstName: "Robert", lastName: "Anderson", email: "r.anderson@company.com", username: "randerson", roleId: 1, status: "Active", lastLogin: "2024-01-15 10:05", joinedDate: "2022-11-30", department: "IT", phone: "+1 (555) 789-0123", avatarColor: "#3498db" },
-    { id: 8, firstName: "Jennifer", lastName: "Thomas", email: "j.thomas@company.com", username: "jthomas", roleId: 3, status: "Active", lastLogin: "2024-01-14 15:30", joinedDate: "2023-09-18", department: "Customer Service", phone: "+1 (555) 890-1234", avatarColor: "#e74c3c" },
-    { id: 9, firstName: "James", lastName: "Martinez", email: "james.m@company.com", username: "jmartinez", roleId: 2, status: "Active", lastLogin: "2024-01-13 11:45", joinedDate: "2023-10-05", department: "Logistics", phone: "+1 (555) 901-2345", avatarColor: "#9b59b6" },
-    { id: 10, firstName: "Patricia", lastName: "Garcia", email: "patricia.g@company.com", username: "pgarcia", roleId: 4, status: "Inactive", lastLogin: "2023-12-28 09:30", joinedDate: "2023-07-12", department: "Marketing", phone: "+1 (555) 012-3456", avatarColor: "#e67e22" }
-  ];
+      // Users Data
+      // let users = [
+      //   { id: 1, firstName: "John", lastName: "Smith", email: "john.smith@company.com", username: "jsmith", roleId: 1, status: "Active", lastLogin: "2024-01-15 14:30", joinedDate: "2023-01-15", department: "IT", phone: "+1 (555) 123-4567", avatarColor: "#4361ee" },
+      //   { id: 2, firstName: "Sarah", lastName: "Johnson", email: "sarah.j@company.com", username: "sjohnson", roleId: 1, status: "Active", lastLogin: "2024-01-14 09:15", joinedDate: "2023-03-20", department: "Operations", phone: "+1 (555) 234-5678", avatarColor: "#7209b7" },
+      //   { id: 3, firstName: "Michael", lastName: "Brown", email: "m.brown@company.com", username: "mbrown", roleId: 2, status: "Active", lastLogin: "2024-01-13 16:45", joinedDate: "2023-05-10", department: "Warehouse", phone: "+1 (555) 345-6789", avatarColor: "#4cc9f0" },
+      //   { id: 4, firstName: "Emily", lastName: "Davis", email: "emily.d@company.com", username: "edavis", roleId: 2, status: "Inactive", lastLogin: "2023-12-05 11:20", joinedDate: "2023-06-15", department: "Sales", phone: "+1 (555) 456-7890", avatarColor: "#f72585" },
+      //   { id: 5, firstName: "David", lastName: "Wilson", email: "d.wilson@company.com", username: "dwilson", roleId: 3, status: "Active", lastLogin: "2024-01-12 13:10", joinedDate: "2023-08-22", department: "Finance", phone: "+1 (555) 567-8901", avatarColor: "#ff9e00" },
+      //   { id: 6, firstName: "Lisa", lastName: "Taylor", email: "lisa.t@company.com", username: "ltaylor", roleId: 3, status: "Pending", lastLogin: "Never", joinedDate: "2024-01-10", department: "HR", phone: "+1 (555) 678-9012", avatarColor: "#2ecc71" },
+      //   { id: 7, firstName: "Robert", lastName: "Anderson", email: "r.anderson@company.com", username: "randerson", roleId: 1, status: "Active", lastLogin: "2024-01-15 10:05", joinedDate: "2022-11-30", department: "IT", phone: "+1 (555) 789-0123", avatarColor: "#3498db" },
+      //   { id: 8, firstName: "Jennifer", lastName: "Thomas", email: "j.thomas@company.com", username: "jthomas", roleId: 3, status: "Active", lastLogin: "2024-01-14 15:30", joinedDate: "2023-09-18", department: "Customer Service", phone: "+1 (555) 890-1234", avatarColor: "#e74c3c" },
+      //   { id: 9, firstName: "James", lastName: "Martinez", email: "james.m@company.com", username: "jmartinez", roleId: 2, status: "Active", lastLogin: "2024-01-13 11:45", joinedDate: "2023-10-05", department: "Logistics", phone: "+1 (555) 901-2345", avatarColor: "#9b59b6" },
+      //   { id: 10, firstName: "Patricia", lastName: "Garcia", email: "patricia.g@company.com", username: "pgarcia", roleId: 4, status: "Inactive", lastLogin: "2023-12-28 09:30", joinedDate: "2023-07-12", department: "Marketing", phone: "+1 (555) 012-3456", avatarColor: "#e67e22" }
+      // ];
 
-  let currentUserId = null;
-  let currentEditMode = false;
-  let selectedRoleIdForChange = null;
-  let currentPage = 1;
-  const itemsPerPage = 5;
+      async function fetchUsers() {
+        try {
+          const res = await fetch("http://localhost:5000/api/users");
 
-  // Get Role Name by ID
-  function getRoleName(roleId) {
-    const role = roles.find(r => r.id === roleId);
-    return role ? role.name : 'No Role';
-  }
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error response:", text);
+            showNotification("Failed to load users", "danger");
+            return;
+          }
 
-  // Get Role Color by ID
-  function getRoleColor(roleId) {
-    const role = roles.find(r => r.id === roleId);
-    return role ? role.color : '#6c757d';
-  }
+          const data = await res.json();
 
-  // Get Role Badge Class
-  function getRoleBadgeClass(roleId) {
-    const role = roles.find(r => r.id === roleId);
-    if (!role) return '';
-    if (role.name === 'Administrator') return 'role-admin';
-    if (role.name === 'Manager') return 'role-manager';
-    if (role.name === 'Staff') return 'role-staff';
-    return 'role-viewer';
-  }
+          users = data;
+          renderUserTable();
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
+        }
+      }
 
-  // Render User Table
-  function renderUserTable() {
-    const roleFilter = document.getElementById('roleFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    let filteredUsers = users.filter(user => {
-      const matchesRole = !roleFilter || user.roleId == roleFilter;
-      const matchesStatus = !statusFilter || user.status === statusFilter;
-      const matchesSearch = !searchTerm || 
-        user.firstName.toLowerCase().includes(searchTerm) ||
-        user.lastName.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm) ||
-        user.username.toLowerCase().includes(searchTerm);
-      return matchesRole && matchesStatus && matchesSearch;
-    });
-    
-    // Update stats
-    updateStats();
-    
-    // Pagination
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
-    
-    // Render table body
-    const tbody = document.getElementById('userTableBody');
-    tbody.innerHTML = '';
-    
-    if (paginatedUsers.length === 0) {
-      tbody.innerHTML = `
+      let currentUserId = null;
+      let currentEditMode = false;
+      let selectedRoleIdForChange = null;
+      let currentPage = 1;
+      const itemsPerPage = 5;
+
+      // Get Role Name by ID
+      function getRoleName(roleId) {
+        const role = roles.find((r) => r.id === roleId);
+        return role ? role.name : "No Role";
+      }
+
+      // Get Role Color by ID
+      function getRoleColor(roleId) {
+        const role = roles.find((r) => r.id === roleId);
+        return role ? role.color : "#6c757d";
+      }
+
+      // Get Role Badge Class
+      function getRoleBadgeClass(roleId) {
+        const role = roles.find((r) => r.id === roleId);
+        if (!role) return "";
+        if (role.name === "Administrator") return "role-admin";
+        if (role.name === "Manager") return "role-manager";
+        if (role.name === "Staff") return "role-staff";
+        return "role-viewer";
+      }
+
+      // Render User Table
+      function renderUserTable() {
+        const roleFilter = document.getElementById("roleFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+
+        let filteredUsers = users.filter((user) => {
+          const matchesRole = !roleFilter || user.roleId == roleFilter;
+          const matchesStatus = !statusFilter || user.status === statusFilter;
+          const matchesSearch =
+            !searchTerm ||
+            user.firstName.toLowerCase().includes(searchTerm) ||
+            user.lastName.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm) ||
+            user.username.toLowerCase().includes(searchTerm);
+          return matchesRole && matchesStatus && matchesSearch;
+        });
+
+        // Update stats
+        updateStats();
+
+        // Pagination
+        const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const paginatedUsers = filteredUsers.slice(
+          startIndex,
+          startIndex + itemsPerPage,
+        );
+
+        // Render table body
+        const tbody = document.getElementById("userTableBody");
+        tbody.innerHTML = "";
+
+        if (paginatedUsers.length === 0) {
+          tbody.innerHTML = `
         <tr>
           <td colspan="7" style="text-align: center; padding: 50px;">
             <i class="fas fa-users" style="font-size: 48px; color: var(--gray); margin-bottom: 15px; display: block;"></i>
@@ -1133,18 +1221,20 @@
           </td>
         </tr>
       `;
-    } else {
-      paginatedUsers.forEach(user => {
-        const initials = user.firstName.charAt(0) + user.lastName.charAt(0);
-        const roleName = getRoleName(user.roleId);
-        const roleColor = getRoleColor(user.roleId);
-        
-        let statusClass = 'status-active';
-        if (user.status === 'Inactive') statusClass = 'status-inactive';
-        else if (user.status === 'Pending') statusClass = 'status-pending';
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
+        } else {
+          paginatedUsers.forEach((user) => {
+            const initials =
+              (user.firstName?.charAt(0) || "") +
+              (user.lastName?.charAt(0) || "");
+            const roleName = getRoleName(user.roleId);
+            const roleColor = getRoleColor(user.roleId);
+
+            let statusClass = "status-active";
+            if (user.status === "Inactive") statusClass = "status-inactive";
+            else if (user.status === "Pending") statusClass = "status-pending";
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
           <td>
             <div class="user-info">
               <div class="user-avatar" style="background: ${user.avatarColor}">${initials}</div>
@@ -1171,123 +1261,134 @@
           <td>${user.joinedDate}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-edit" onclick="editUser(${user.id})" title="Edit User">
+              <button class="btn-edit" onclick="editUser(${user._id})" title="Edit User">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="btn-role" onclick="openChangeRoleModal(${user.id})" title="Change Role">
+              <button class="btn-role" onclick="openChangeRoleModal(${user._id})" title="Change Role">
                 <i class="fas fa-user-tag"></i>
               </button>
-              <button class="btn-delete" onclick="deleteUser(${user.id})" title="Delete User">
+              <button class="btn-delete" onclick="deleteUser(${user._id})" title="Delete User">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
           </td>
         `;
-        tbody.appendChild(row);
-      });
-    }
-    
-    // Render pagination
-    renderPagination(totalPages);
-  }
+            tbody.appendChild(row);
+          });
+        }
 
-  // Render Pagination
-  function renderPagination(totalPages) {
-    const paginationDiv = document.getElementById('pagination');
-    paginationDiv.innerHTML = '';
-    
-    if (totalPages <= 1) return;
-    
-    // Previous button
-    const prevBtn = document.createElement('button');
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderUserTable();
+        // Render pagination
+        renderPagination(totalPages);
       }
-    };
-    paginationDiv.appendChild(prevBtn);
-    
-    // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
-      const pageBtn = document.createElement('button');
-      pageBtn.textContent = i;
-      pageBtn.className = currentPage === i ? 'active' : '';
-      pageBtn.onclick = () => {
-        currentPage = i;
-        renderUserTable();
-      };
-      paginationDiv.appendChild(pageBtn);
-    }
-    
-    // Next button
-    const nextBtn = document.createElement('button');
-    nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderUserTable();
+
+      // Render Pagination
+      function renderPagination(totalPages) {
+        const paginationDiv = document.getElementById("pagination");
+        paginationDiv.innerHTML = "";
+
+        if (totalPages <= 1) return;
+
+        // Previous button
+        const prevBtn = document.createElement("button");
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => {
+          if (currentPage > 1) {
+            currentPage--;
+            // renderUserTable();
+            fetchUsers();
+          }
+        };
+        paginationDiv.appendChild(prevBtn);
+
+        // Page buttons
+        for (let i = 1; i <= totalPages; i++) {
+          const pageBtn = document.createElement("button");
+          pageBtn.textContent = i;
+          pageBtn.className = currentPage === i ? "active" : "";
+          pageBtn.onclick = () => {
+            currentPage = i;
+            // renderUserTable();
+            fetchUsers();
+          };
+          paginationDiv.appendChild(pageBtn);
+        }
+
+        // Next button
+        const nextBtn = document.createElement("button");
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            // renderUserTable();
+            fetchUsers();
+          }
+        };
+        paginationDiv.appendChild(nextBtn);
       }
-    };
-    paginationDiv.appendChild(nextBtn);
-  }
 
-  // Update Statistics
-  function updateStats() {
-    document.getElementById('totalUsers').textContent = users.length;
-    document.getElementById('activeUsers').textContent = users.filter(u => u.status === 'Active').length;
-    document.getElementById('inactiveUsers').textContent = users.filter(u => u.status !== 'Active').length;
-    document.getElementById('adminCount').textContent = users.filter(u => getRoleName(u.roleId) === 'Administrator').length;
-  }
+      // Update Statistics
+      function updateStats() {
+        document.getElementById("totalUsers").textContent = users.length;
+        document.getElementById("activeUsers").textContent = users.filter(
+          (u) => u.status === "Active",
+        ).length;
+        document.getElementById("inactiveUsers").textContent = users.filter(
+          (u) => u.status !== "Active",
+        ).length;
+        document.getElementById("adminCount").textContent = users.filter(
+          (u) => getRoleName(u.roleId) === "Administrator",
+        ).length;
+      }
 
-  // Populate Role Filter Dropdown
-  function populateRoleFilter() {
-    const roleFilter = document.getElementById('roleFilter');
-    roleFilter.innerHTML = '<option value="">All Roles</option>';
-    
-    roles.forEach(role => {
-      const option = document.createElement('option');
-      option.value = role.id;
-      option.textContent = role.name;
-      roleFilter.appendChild(option);
-    });
-  }
+      // Populate Role Filter Dropdown
+      function populateRoleFilter() {
+        const roleFilter = document.getElementById("roleFilter");
+        roleFilter.innerHTML = '<option value="">All Roles</option>';
 
-  // Populate Role Dropdown in Modal
-  function populateRoleDropdown() {
-    const roleSelect = document.getElementById('userRole');
-    roleSelect.innerHTML = '<option value="">Select Role</option>';
-    
-    roles.forEach(role => {
-      const option = document.createElement('option');
-      option.value = role.id;
-      option.textContent = `${role.name} (Level ${role.level})`;
-      roleSelect.appendChild(option);
-    });
-  }
+        roles.forEach((role) => {
+          const option = document.createElement("option");
+          option.value = role.id;
+          option.textContent = role.name;
+          roleFilter.appendChild(option);
+        });
+      }
 
-  // Populate Role List in Change Role Modal
-  function populateRoleList(selectedRoleId) {
-    const roleList = document.getElementById('roleList');
-    roleList.innerHTML = '';
-    
-    roles.forEach(role => {
-      const isSelected = role.id === selectedRoleId;
-      const roleDiv = document.createElement('div');
-      roleDiv.className = `role-option ${isSelected ? 'selected' : ''}`;
-      roleDiv.onclick = () => {
-        document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
-        roleDiv.classList.add('selected');
-        selectedRoleIdForChange = role.id;
-      };
-      
-      // Get permission count for display
-      const permissionCount = getPermissionCountForRole(role.id);
-      
-      roleDiv.innerHTML = `
+      // Populate Role Dropdown in Modal
+      function populateRoleDropdown() {
+        const roleSelect = document.getElementById("userRole");
+        roleSelect.innerHTML = '<option value="">Select Role</option>';
+
+        roles.forEach((role) => {
+          const option = document.createElement("option");
+          option.value = role.id;
+          option.textContent = `${role.name} (Level ${role.level})`;
+          roleSelect.appendChild(option);
+        });
+      }
+
+      // Populate Role List in Change Role Modal
+      function populateRoleList(selectedRoleId) {
+        const roleList = document.getElementById("roleList");
+        roleList.innerHTML = "";
+
+        roles.forEach((role) => {
+          const isSelected = role.id === selectedRoleId;
+          const roleDiv = document.createElement("div");
+          roleDiv.className = `role-option ${isSelected ? "selected" : ""}`;
+          roleDiv.onclick = () => {
+            document
+              .querySelectorAll(".role-option")
+              .forEach((opt) => opt.classList.remove("selected"));
+            roleDiv.classList.add("selected");
+            selectedRoleIdForChange = role.id;
+          };
+
+          // Get permission count for display
+          const permissionCount = getPermissionCountForRole(role.id);
+
+          roleDiv.innerHTML = `
         <div class="role-color" style="background: ${role.color};"></div>
         <div class="role-option-info">
           <h4>${role.name}</h4>
@@ -1296,242 +1397,285 @@
             <i class="fas fa-key"></i> ${permissionCount} permissions
           </div>
         </div>
-        ${isSelected ? '<i class="fas fa-check-circle" style="color: var(--success); margin-left: auto;"></i>' : ''}
+        ${isSelected ? '<i class="fas fa-check-circle" style="color: var(--success); margin-left: auto;"></i>' : ""}
       `;
-      
-      roleList.appendChild(roleDiv);
-    });
-  }
 
-  // Get Permission Count for Role (simulated)
-  function getPermissionCountForRole(roleId) {
-    const role = roles.find(r => r.id === roleId);
-    if (role.name === 'Administrator') return 20;
-    if (role.name === 'Manager') return 12;
-    if (role.name === 'Staff') return 6;
-    return 3;
-  }
-
-  // Open User Modal
-  function openUserModal(userId = null) {
-    currentUserId = userId;
-    currentEditMode = userId !== null;
-    
-    const modal = document.getElementById('userModal');
-    const title = document.getElementById('modalTitle');
-    const passwordLabel = document.getElementById('passwordLabel');
-    
-    if (currentEditMode) {
-      title.textContent = 'Edit User';
-      passwordLabel.classList.remove('required');
-      passwordLabel.textContent = 'Password (leave blank to keep current)';
-      
-      const user = users.find(u => u.id === userId);
-      if (user) {
-        document.getElementById('firstName').value = user.firstName;
-        document.getElementById('lastName').value = user.lastName;
-        document.getElementById('userEmail').value = user.email;
-        document.getElementById('username').value = user.username;
-        document.getElementById('userRole').value = user.roleId;
-        document.getElementById('userStatus').value = user.status;
-        document.getElementById('phone').value = user.phone || '';
-        document.getElementById('department').value = user.department || '';
-        document.getElementById('password').value = '';
-        document.getElementById('confirmPassword').value = '';
+          roleList.appendChild(roleDiv);
+        });
       }
-    } else {
-      title.textContent = 'Add New User';
-      passwordLabel.classList.add('required');
-      passwordLabel.textContent = 'Password';
-      clearUserForm();
-    }
-    
-    modal.style.display = 'flex';
-  }
 
-  // Edit User
-  function editUser(userId) {
-    openUserModal(userId);
-  }
-
-  // Clear User Form
-  function clearUserForm() {
-    document.getElementById('firstName').value = '';
-    document.getElementById('lastName').value = '';
-    document.getElementById('userEmail').value = '';
-    document.getElementById('username').value = '';
-    document.getElementById('userRole').value = '';
-    document.getElementById('userStatus').value = 'Active';
-    document.getElementById('phone').value = '';
-    document.getElementById('department').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('confirmPassword').value = '';
-  }
-
-  // Save User
-  function saveUser() {
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const email = document.getElementById('userEmail').value.trim();
-    const username = document.getElementById('username').value.trim();
-    const roleId = parseInt(document.getElementById('userRole').value);
-    const status = document.getElementById('userStatus').value;
-    const phone = document.getElementById('phone').value.trim();
-    const department = document.getElementById('department').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    // Validation
-    if (!firstName || !lastName || !email || !username || !roleId) {
-      showNotification('Please fill in all required fields!', 'danger');
-      return;
-    }
-    
-    if (!currentEditMode && (!password || !confirmPassword)) {
-      showNotification('Password is required for new users!', 'danger');
-      return;
-    }
-    
-    if (password && password !== confirmPassword) {
-      showNotification('Passwords do not match!', 'danger');
-      return;
-    }
-    
-    if (password && password.length < 8) {
-      showNotification('Password must be at least 8 characters long!', 'danger');
-      return;
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showNotification('Please enter a valid email address!', 'danger');
-      return;
-    }
-    
-    // Check if username or email already exists (for new users)
-    if (!currentEditMode) {
-      const existingUser = users.find(u => u.email === email || u.username === username);
-      if (existingUser) {
-        showNotification('Username or email already exists!', 'danger');
-        return;
+      // Get Permission Count for Role (simulated)
+      function getPermissionCountForRole(roleId) {
+        const role = roles.find((r) => r.id === roleId);
+        if (role.name === "Administrator") return 20;
+        if (role.name === "Manager") return 12;
+        if (role.name === "Staff") return 6;
+        return 3;
       }
-    }
-    
-    // Generate avatar color
-    const colors = ['#4361ee', '#7209b7', '#4cc9f0', '#f72585', '#ff9e00', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6', '#e67e22'];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    if (currentEditMode) {
-      // Update existing user
-      const userIndex = users.findIndex(u => u.id === currentUserId);
-      if (userIndex !== -1) {
-        users[userIndex].firstName = firstName;
-        users[userIndex].lastName = lastName;
-        users[userIndex].email = email;
-        users[userIndex].username = username;
-        users[userIndex].roleId = roleId;
-        users[userIndex].status = status;
-        users[userIndex].phone = phone;
-        users[userIndex].department = department;
-        showNotification('User updated successfully!', 'success');
+
+      // Open User Modal
+      function openUserModal(userId = null) {
+        currentUserId = userId;
+        currentEditMode = userId !== null;
+
+        const modal = document.getElementById("userModal");
+        const title = document.getElementById("modalTitle");
+        const passwordLabel = document.getElementById("passwordLabel");
+
+        if (currentEditMode) {
+          title.textContent = "Edit User";
+          passwordLabel.classList.remove("required");
+          passwordLabel.textContent = "Password (leave blank to keep current)";
+
+          const user = users.find((u) => u.id === userId);
+          if (user) {
+            document.getElementById("firstName").value = user.firstName;
+            document.getElementById("lastName").value = user.lastName;
+            document.getElementById("userEmail").value = user.email;
+            document.getElementById("username").value = user.username;
+            document.getElementById("userRole").value = user.roleId;
+            document.getElementById("userStatus").value = user.status;
+            document.getElementById("phone").value = user.phone || "";
+            document.getElementById("department").value = user.department || "";
+            // document.getElementById('password').value = '';
+            // document.getElementById('confirmPassword').value = '';
+          }
+        } else {
+          title.textContent = "Add New User";
+          // passwordLabel.classList.add('required');
+          // passwordLabel.textContent = 'Password';
+          clearUserForm();
+        }
+
+        modal.style.display = "flex";
       }
-    } else {
-      // Create new user
-      const newUser = {
-        id: users.length + 1,
-        firstName,
-        lastName,
-        email,
-        username,
-        roleId,
-        status,
-        phone,
-        department,
-        lastLogin: 'Never',
-        joinedDate: new Date().toISOString().split('T')[0],
-        avatarColor: randomColor
-      };
-      users.push(newUser);
-      showNotification('User created successfully!', 'success');
-    }
-    
-    closeModal();
-    currentPage = 1;
-    renderUserTable();
-  }
 
-  // Delete User
-  function deleteUser(userId) {
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
-    
-    // Prevent deleting the last admin
-    const adminCount = users.filter(u => getRoleName(u.roleId) === 'Administrator').length;
-    if (getRoleName(user.roleId) === 'Administrator' && adminCount <= 1) {
-      showNotification('Cannot delete the last administrator!', 'danger');
-      return;
-    }
-    
-    if (confirm(`Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`)) {
-      const index = users.findIndex(u => u.id === userId);
-      if (index !== -1) {
-        users.splice(index, 1);
-        renderUserTable();
-        showNotification('User deleted successfully!', 'success');
+      // Edit User
+      function editUser(userId) {
+        openUserModal(userId);
       }
-    }
-  }
 
-  // Open Change Role Modal
-  function openChangeRoleModal(userId) {
-    currentUserId = userId;
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
-    
-    document.getElementById('changeRoleUserName').value = `${user.firstName} ${user.lastName} (${user.email})`;
-    selectedRoleIdForChange = user.roleId;
-    
-    populateRoleList(user.roleId);
-    document.getElementById('changeRoleModal').style.display = 'flex';
-  }
+      // Clear User Form
+      function clearUserForm() {
+        document.getElementById("firstName").value = "";
+        document.getElementById("lastName").value = "";
+        document.getElementById("userEmail").value = "";
+        document.getElementById("username").value = "";
+        document.getElementById("userRole").value = "";
+        document.getElementById("userStatus").value = "Active";
+        document.getElementById("phone").value = "";
+        document.getElementById("department").value = "";
+        // document.getElementById('password').value = '';
+        // document.getElementById('confirmPassword').value = '';
+      }
 
-  // Update User Role
-  function updateUserRole() {
-    if (!currentUserId || !selectedRoleIdForChange) {
-      showNotification('Please select a role!', 'warning');
-      return;
-    }
-    
-    const userIndex = users.findIndex(u => u.id === currentUserId);
-    if (userIndex !== -1) {
-      const oldRoleName = getRoleName(users[userIndex].roleId);
-      const newRoleName = getRoleName(selectedRoleIdForChange);
-      
-      users[userIndex].roleId = selectedRoleIdForChange;
-      showNotification(`Role changed from "${oldRoleName}" to "${newRoleName}"`, 'success');
-      closeModal();
-      renderUserTable();
-    }
-  }
+      // Save User
+      async function saveUser() {
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const email = document.getElementById("userEmail").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const roleId = parseInt(document.getElementById("userRole").value);
+        const status = document.getElementById("userStatus").value;
+        const phone = document.getElementById("phone").value.trim();
+        const department = document.getElementById("department").value.trim();
+        // const password = document.getElementById('password').value;
+        // const confirmPassword = document.getElementById('confirmPassword').value;
 
-  // Export Users
-  function exportUsers() {
-    showNotification('Exporting user list to CSV...', 'success');
-    // In a real app, this would generate and download a CSV file
-    setTimeout(() => {
-      showNotification('User list exported successfully!', 'success');
-    }, 1000);
-  }
+        // Validation
+        if (!firstName || !lastName || !email || !username || !roleId) {
+          showNotification("Please fill in all required fields!", "danger");
+          return;
+        }
 
-  // Show Notification
-  function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
+        // if (!currentEditMode && (!password || !confirmPassword)) {
+        //   showNotification('Password is required for new users!', 'danger');
+        //   return;
+        // }
+
+        // if (password && password !== confirmPassword) {
+        //   showNotification('Passwords do not match!', 'danger');
+        //   return;
+        // }
+
+        // if (password && password.length < 8) {
+        //   showNotification('Password must be at least 8 characters long!', 'danger');
+        //   return;
+        // }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showNotification("Please enter a valid email address!", "danger");
+          return;
+        }
+
+        // Check if username or email already exists (for new users)
+        if (!currentEditMode) {
+          const existingUser = users.find(
+            (u) => u.email === email || u.username === username,
+          );
+          if (existingUser) {
+            showNotification("Username or email already exists!", "danger");
+            return;
+          }
+        }
+
+        // Generate avatar color
+        const colors = [
+          "#4361ee",
+          "#7209b7",
+          "#4cc9f0",
+          "#f72585",
+          "#ff9e00",
+          "#2ecc71",
+          "#3498db",
+          "#e74c3c",
+          "#9b59b6",
+          "#e67e22",
+        ];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        if (currentEditMode) {
+          // Update existing user
+          const userIndex = users.findIndex((u) => u.id === currentUserId);
+          if (userIndex !== -1) {
+            users[userIndex].firstName = firstName;
+            users[userIndex].lastName = lastName;
+            users[userIndex].email = email;
+            users[userIndex].username = username;
+            users[userIndex].roleId = roleId;
+            users[userIndex].status = status;
+            users[userIndex].phone = phone;
+            users[userIndex].department = department;
+            showNotification("User updated successfully!", "success");
+          }
+        } else {
+          // Create new user
+          try {
+            const res = await fetch("http://localhost:5000/api/users", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                username,
+                roleId,
+                status,
+                phone,
+                department,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              showNotification(data.message, "danger");
+              return;
+            }
+
+            showNotification("User created successfully!", "success");
+
+            closeModal();
+            fetchUsers(); // 🔥 reload from DB
+          } catch (err) {
+            console.error(err);
+            showNotification("Server error", "danger");
+          }
+        }
+
+        closeModal();
+        currentPage = 1;
+        // renderUserTable();
+        fetchUsers();
+      }
+
+      // Delete User
+      function deleteUser(userId) {
+        const user = users.find((u) => u.id === userId);
+        if (!user) return;
+
+        // Prevent deleting the last admin
+        const adminCount = users.filter(
+          (u) => getRoleName(u.roleId) === "Administrator",
+        ).length;
+        if (getRoleName(user.roleId) === "Administrator" && adminCount <= 1) {
+          showNotification("Cannot delete the last administrator!", "danger");
+          return;
+        }
+
+        if (
+          confirm(
+            `Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`,
+          )
+        ) {
+          const index = users.findIndex((u) => u.id === userId);
+          if (index !== -1) {
+            users.splice(index, 1);
+            // renderUserTable();
+            fetchUsers();
+            showNotification("User deleted successfully!", "success");
+          }
+        }
+      }
+
+      // Open Change Role Modal
+      function openChangeRoleModal(userId) {
+        currentUserId = userId;
+        const user = users.find((u) => u.id === userId);
+        if (!user) return;
+
+        document.getElementById("changeRoleUserName").value =
+          `${user.firstName} ${user.lastName} (${user.email})`;
+        selectedRoleIdForChange = user.roleId;
+
+        populateRoleList(user.roleId);
+        document.getElementById("changeRoleModal").style.display = "flex";
+      }
+
+      // Update User Role
+      function updateUserRole() {
+        if (!currentUserId || !selectedRoleIdForChange) {
+          showNotification("Please select a role!", "warning");
+          return;
+        }
+
+        const userIndex = users.findIndex((u) => u.id === currentUserId);
+        if (userIndex !== -1) {
+          const oldRoleName = getRoleName(users[userIndex].roleId);
+          const newRoleName = getRoleName(selectedRoleIdForChange);
+
+          users[userIndex].roleId = selectedRoleIdForChange;
+          showNotification(
+            `Role changed from "${oldRoleName}" to "${newRoleName}"`,
+            "success",
+          );
+          closeModal();
+          // renderUserTable();
+          fetchUsers();
+        }
+      }
+
+      // Export Users
+      function exportUsers() {
+        showNotification("Exporting user list to CSV...", "success");
+        // In a real app, this would generate and download a CSV file
+        setTimeout(() => {
+          showNotification("User list exported successfully!", "success");
+        }, 1000);
+      }
+
+      // Show Notification
+      function showNotification(message, type = "success") {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background: ${type === 'success' ? '#2ecc71' : type === 'danger' ? '#f72585' : '#ff9e00'};
+      background: ${type === "success" ? "#2ecc71" : type === "danger" ? "#f72585" : "#ff9e00"};
       color: white;
       padding: 15px 20px;
       border-radius: var(--border-radius);
@@ -1542,34 +1686,34 @@
       gap: 10px;
       animation: slideInRight 0.3s ease;
     `;
-    
-    notification.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+
+        notification.innerHTML = `
+      <i class="fas fa-${type === "success" ? "check-circle" : type === "danger" ? "exclamation-circle" : "info-circle"}"></i>
       <span>${message}</span>
     `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.animation = 'slideOutRight 0.3s ease';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 3000);
-  }
 
-  // Close Modal
-  function closeModal() {
-    document.getElementById('userModal').style.display = 'none';
-    document.getElementById('changeRoleModal').style.display = 'none';
-    currentUserId = null;
-    currentEditMode = false;
-    selectedRoleIdForChange = null;
-  }
+        document.body.appendChild(notification);
 
-  // Add animation styles
-  const style = document.createElement('style');
-  style.textContent = `
+        setTimeout(() => {
+          notification.style.animation = "slideOutRight 0.3s ease";
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 3000);
+      }
+
+      // Close Modal
+      function closeModal() {
+        document.getElementById("userModal").style.display = "none";
+        document.getElementById("changeRoleModal").style.display = "none";
+        currentUserId = null;
+        currentEditMode = false;
+        selectedRoleIdForChange = null;
+      }
+
+      // Add animation styles
+      const style = document.createElement("style");
+      style.textContent = `
     @keyframes slideInRight {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
@@ -1603,41 +1747,46 @@
       box-shadow: 0 0 0 2px rgba(255, 158, 0, 0.2);
     }
   `;
-  document.head.appendChild(style);
+      document.head.appendChild(style);
 
-  // Initialize
-  document.addEventListener('DOMContentLoaded', function() {
-    populateRoleFilter();
-    populateRoleDropdown();
-    renderUserTable();
-    
-    // Add event listeners
-    document.getElementById('roleFilter').addEventListener('change', () => {
-      currentPage = 1;
-      renderUserTable();
-    });
-    
-    document.getElementById('statusFilter').addEventListener('change', () => {
-      currentPage = 1;
-      renderUserTable();
-    });
-    
-    document.getElementById('searchInput').addEventListener('input', () => {
-      currentPage = 1;
-      renderUserTable();
-    });
-    
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-      const userModal = document.getElementById('userModal');
-      const changeRoleModal = document.getElementById('changeRoleModal');
-      
-      if (event.target === userModal || event.target === changeRoleModal) {
-        closeModal();
-      }
-    };
-  });
-</script>
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        populateRoleFilter();
+        populateRoleDropdown();
+        // renderUserTable();
+        fetchUsers();
 
-</body>
+        // Add event listeners
+        document.getElementById("roleFilter").addEventListener("change", () => {
+          currentPage = 1;
+          // renderUserTable();
+          fetchUsers();
+        });
+
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", () => {
+            currentPage = 1;
+            // renderUserTable();
+            fetchUsers();
+          });
+
+        document.getElementById("searchInput").addEventListener("input", () => {
+          currentPage = 1;
+          // renderUserTable();
+          fetchUsers();
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+          const userModal = document.getElementById("userModal");
+          const changeRoleModal = document.getElementById("changeRoleModal");
+
+          if (event.target === userModal || event.target === changeRoleModal) {
+            closeModal();
+          }
+        };
+      });
+    </script>
+  </body>
 </html>

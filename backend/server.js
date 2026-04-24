@@ -7,7 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
-// connect database
+// connect DB
 connectDB();
 
 // middleware
@@ -19,13 +19,11 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// routes
+// use routes
 app.use("/api/users", userRoutes);
 
-// port
-const PORT = process.env.PORT || 5000;
-
 // start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
