@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
     default: "123456", // 👈 default password
   },
   roleId: {
-    type: number,
+    type: Number,
     enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viwer
   },
   status: {
