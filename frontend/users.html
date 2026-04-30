@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1261,13 +1261,13 @@
           <td>${user.joinedDate}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-edit" onclick="editUser(${user._id})" title="Edit User">
+              <button class="btn-edit" onclick="editUser('${user._id}')" title="Edit User">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="btn-role" onclick="openChangeRoleModal(${user._id})" title="Change Role">
+              <button class="btn-role" onclick="openChangeRoleModal('${user._id}')" title="Change Role">
                 <i class="fas fa-user-tag"></i>
               </button>
-              <button class="btn-delete" onclick="deleteUser(${user._id})" title="Delete User">
+              <button class="btn-delete" onclick="deleteUser('${user._id}')" title="Delete User">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -1594,31 +1594,75 @@
       }
 
       // Delete User
-      function deleteUser(userId) {
-        const user = users.find((u) => u.id === userId);
+      // function deleteUser(userId) {
+      //   const user = users.find((u) => u.id === userId);
+      //   if (!user) return;
+
+      //   // Prevent deleting the last admin
+      //   const adminCount = users.filter(
+      //     (u) => getRoleName(u.roleId) === "Administrator",
+      //   ).length;
+      //   if (getRoleName(user.roleId) === "Administrator" && adminCount <= 1) {
+      //     showNotification("Cannot delete the last administrator!", "danger");
+      //     return;
+      //   }
+
+      //   if (
+      //     confirm(
+      //       `Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`,
+      //     )
+      //   ) {
+      //     const index = users.findIndex((u) => u.id === userId);
+      //     if (index !== -1) {
+      //       users.splice(index, 1);
+      //       // renderUserTable();
+      //       fetchUsers();
+      //       showNotification("User deleted successfully!", "success");
+      //     }
+      //   }
+      // }
+      async function deleteUser(userId) {
+        const user = users.find((u) => u._id === userId);
+
         if (!user) return;
 
-        // Prevent deleting the last admin
+        // Prevent deleting last admin
         const adminCount = users.filter(
           (u) => getRoleName(u.roleId) === "Administrator",
         ).length;
+
         if (getRoleName(user.roleId) === "Administrator" && adminCount <= 1) {
           showNotification("Cannot delete the last administrator!", "danger");
           return;
         }
 
-        if (
-          confirm(
-            `Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`,
-          )
-        ) {
-          const index = users.findIndex((u) => u.id === userId);
-          if (index !== -1) {
-            users.splice(index, 1);
-            // renderUserTable();
-            fetchUsers();
-            showNotification("User deleted successfully!", "success");
+        const confirmDelete = confirm(
+          `Are you sure you want to delete "${user.firstName} ${user.lastName}"?`,
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/users/${userId}`,
+            {
+              method: "DELETE",
+            },
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showNotification(data.message, "danger");
+            return;
           }
+
+          showNotification("User deleted successfully!", "success");
+
+          fetchUsers(); // reload table
+        } catch (err) {
+          console.error(err);
+          showNotification("Error deleting user", "danger");
         }
       }
 
