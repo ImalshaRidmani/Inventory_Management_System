@@ -1420,14 +1420,14 @@
 
         const modal = document.getElementById("userModal");
         const title = document.getElementById("modalTitle");
-        const passwordLabel = document.getElementById("passwordLabel");
+        // const passwordLabel = document.getElementById("passwordLabel");
 
         if (currentEditMode) {
           title.textContent = "Edit User";
-          passwordLabel.classList.remove("required");
-          passwordLabel.textContent = "Password (leave blank to keep current)";
+          // passwordLabel.classList.remove("required");
+          // passwordLabel.textContent = "Password (leave blank to keep current)";
 
-          const user = users.find((u) => u.id === userId);
+          const user = users.find((u) => u._id === userId);
           if (user) {
             document.getElementById("firstName").value = user.firstName;
             document.getElementById("lastName").value = user.lastName;
@@ -1538,17 +1538,40 @@
 
         if (currentEditMode) {
           // Update existing user
-          const userIndex = users.findIndex((u) => u.id === currentUserId);
-          if (userIndex !== -1) {
-            users[userIndex].firstName = firstName;
-            users[userIndex].lastName = lastName;
-            users[userIndex].email = email;
-            users[userIndex].username = username;
-            users[userIndex].roleId = roleId;
-            users[userIndex].status = status;
-            users[userIndex].phone = phone;
-            users[userIndex].department = department;
+          try {
+            const response = await fetch(
+              `http://localhost:5000/api/users/${currentUserId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  firstName,
+                  lastName,
+                  email,
+                  username,
+                  roleId,
+                  status,
+                  phone,
+                  department,
+                }),
+              },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              showNotification(data.message, "danger");
+              return;
+            }
+
             showNotification("User updated successfully!", "success");
+            closeModal();
+            fetchUsers(); // reload table
+          } catch (error) {
+            console.error(error);
+            showNotification("Error updating user", "danger");
           }
         } else {
           // Create new user
