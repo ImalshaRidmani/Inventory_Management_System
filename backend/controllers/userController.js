@@ -110,3 +110,51 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+
+// Update User
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const { firstName, lastName, username, email, phone, roleId, status } = req.body;
+
+    // 🔴 Check duplicate (excluding current user)
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+      _id: { $ne: userId }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Username or Email already exists"
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        firstName,
+        lastName,
+        username,
+        email,
+        phone,
+        roleId,
+        status
+      },
+      { new: true } // return updated data
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "User updated successfully",
+      user: updatedUser
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error updating user" });
+  }
+};
