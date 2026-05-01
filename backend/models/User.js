@@ -24,8 +24,12 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   password: {
-    type: String,
-    default: "123456", // 👈 default password
+    password: String,
+    otp: String,
+    isFirstLogin: {
+      type: Boolean,
+      default: true
+    } // 👈 default password
   },
   roleId: {
     type: Number,
