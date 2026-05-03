@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1261,13 +1261,13 @@
           <td>${user.joinedDate}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-edit" onclick="editUser(${user._id})" title="Edit User">
+              <button class="btn-edit" onclick="editUser('${user._id}')" title="Edit User">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="btn-role" onclick="openChangeRoleModal(${user._id})" title="Change Role">
+              <button class="btn-role" onclick="openChangeRoleModal('${user._id}')" title="Change Role">
                 <i class="fas fa-user-tag"></i>
               </button>
-              <button class="btn-delete" onclick="deleteUser(${user._id})" title="Delete User">
+              <button class="btn-delete" onclick="deleteUser('${user._id}')" title="Delete User">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -1420,14 +1420,14 @@
 
         const modal = document.getElementById("userModal");
         const title = document.getElementById("modalTitle");
-        const passwordLabel = document.getElementById("passwordLabel");
+        // const passwordLabel = document.getElementById("passwordLabel");
 
         if (currentEditMode) {
           title.textContent = "Edit User";
-          passwordLabel.classList.remove("required");
-          passwordLabel.textContent = "Password (leave blank to keep current)";
+          // passwordLabel.classList.remove("required");
+          // passwordLabel.textContent = "Password (leave blank to keep current)";
 
-          const user = users.find((u) => u.id === userId);
+          const user = users.find((u) => u._id === userId);
           if (user) {
             document.getElementById("firstName").value = user.firstName;
             document.getElementById("lastName").value = user.lastName;
@@ -1538,17 +1538,40 @@
 
         if (currentEditMode) {
           // Update existing user
-          const userIndex = users.findIndex((u) => u.id === currentUserId);
-          if (userIndex !== -1) {
-            users[userIndex].firstName = firstName;
-            users[userIndex].lastName = lastName;
-            users[userIndex].email = email;
-            users[userIndex].username = username;
-            users[userIndex].roleId = roleId;
-            users[userIndex].status = status;
-            users[userIndex].phone = phone;
-            users[userIndex].department = department;
+          try {
+            const response = await fetch(
+              `http://localhost:5000/api/users/${currentUserId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  firstName,
+                  lastName,
+                  email,
+                  username,
+                  roleId,
+                  status,
+                  phone,
+                  department,
+                }),
+              },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              showNotification(data.message, "danger");
+              return;
+            }
+
             showNotification("User updated successfully!", "success");
+            closeModal();
+            fetchUsers(); // reload table
+          } catch (error) {
+            console.error(error);
+            showNotification("Error updating user", "danger");
           }
         } else {
           // Create new user
@@ -1594,31 +1617,75 @@
       }
 
       // Delete User
-      function deleteUser(userId) {
-        const user = users.find((u) => u.id === userId);
+      // function deleteUser(userId) {
+      //   const user = users.find((u) => u.id === userId);
+      //   if (!user) return;
+
+      //   // Prevent deleting the last admin
+      //   const adminCount = users.filter(
+      //     (u) => getRoleName(u.roleId) === "Administrator",
+      //   ).length;
+      //   if (getRoleName(user.roleId) === "Administrator" && adminCount <= 1) {
+      //     showNotification("Cannot delete the last administrator!", "danger");
+      //     return;
+      //   }
+
+      //   if (
+      //     confirm(
+      //       `Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`,
+      //     )
+      //   ) {
+      //     const index = users.findIndex((u) => u.id === userId);
+      //     if (index !== -1) {
+      //       users.splice(index, 1);
+      //       // renderUserTable();
+      //       fetchUsers();
+      //       showNotification("User deleted successfully!", "success");
+      //     }
+      //   }
+      // }
+      async function deleteUser(userId) {
+        const user = users.find((u) => u._id === userId);
+
         if (!user) return;
 
-        // Prevent deleting the last admin
+        // Prevent deleting last admin
         const adminCount = users.filter(
           (u) => getRoleName(u.roleId) === "Administrator",
         ).length;
+
         if (getRoleName(user.roleId) === "Administrator" && adminCount <= 1) {
           showNotification("Cannot delete the last administrator!", "danger");
           return;
         }
 
-        if (
-          confirm(
-            `Are you sure you want to delete user "${user.firstName} ${user.lastName}"?`,
-          )
-        ) {
-          const index = users.findIndex((u) => u.id === userId);
-          if (index !== -1) {
-            users.splice(index, 1);
-            // renderUserTable();
-            fetchUsers();
-            showNotification("User deleted successfully!", "success");
+        const confirmDelete = confirm(
+          `Are you sure you want to delete "${user.firstName} ${user.lastName}"?`,
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/users/${userId}`,
+            {
+              method: "DELETE",
+            },
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showNotification(data.message, "danger");
+            return;
           }
+
+          showNotification("User deleted successfully!", "success");
+
+          fetchUsers(); // reload table
+        } catch (err) {
+          console.error(err);
+          showNotification("Error deleting user", "danger");
         }
       }
 

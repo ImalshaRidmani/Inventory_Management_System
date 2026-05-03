@@ -24,15 +24,15 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   password: {
-    type: String,
-    default: "123456", // 👈 default password
+    password: String,
+    otp: String,
+    isFirstLogin: {
+      type: Boolean,
+      default: true
+    } // 👈 default password
   },
   roleId: {
-<<<<<<< HEAD
-    type: number,
-=======
     type: Number,
->>>>>>> test
     enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viwer
   },
   status: {
