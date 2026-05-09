@@ -1048,98 +1048,99 @@
       //   }
       // ];
 
-      let users = [
-        {
-          id: 1,
-          name: "John Smith",
-          email: "john@company.com",
-          roleId: 1,
-          avatar: "JS",
-          color: "#4361ee",
-        },
-        {
-          id: 2,
-          name: "Sarah Johnson",
-          email: "sarah@company.com",
-          roleId: 1,
-          avatar: "SJ",
-          color: "#7209b7",
-        },
-        {
-          id: 3,
-          name: "Michael Brown",
-          email: "michael@company.com",
-          roleId: 2,
-          avatar: "MB",
-          color: "#4cc9f0",
-        },
-        {
-          id: 4,
-          name: "Emily Davis",
-          email: "emily@company.com",
-          roleId: 2,
-          avatar: "ED",
-          color: "#f72585",
-        },
-        {
-          id: 5,
-          name: "David Wilson",
-          email: "david@company.com",
-          roleId: 2,
-          avatar: "DW",
-          color: "#ff9e00",
-        },
-        {
-          id: 6,
-          name: "Lisa Taylor",
-          email: "lisa@company.com",
-          roleId: 3,
-          avatar: "LT",
-          color: "#2ecc71",
-        },
-        {
-          id: 7,
-          name: "Robert Anderson",
-          email: "robert@company.com",
-          roleId: 3,
-          avatar: "RA",
-          color: "#4895ef",
-        },
-        {
-          id: 8,
-          name: "Jennifer Thomas",
-          email: "jennifer@company.com",
-          roleId: 3,
-          avatar: "JT",
-          color: "#e74c3c",
-        },
-        {
-          id: 9,
-          name: "James Martinez",
-          email: "james@company.com",
-          roleId: 3,
-          avatar: "JM",
-          color: "#3498db",
-        },
-        {
-          id: 10,
-          name: "Patricia Garcia",
-          email: "patricia@company.com",
-          roleId: 4,
-          avatar: "PG",
-          color: "#9b59b6",
-        },
-        {
-          id: 11,
-          name: "Christopher Rodriguez",
-          email: "christopher@company.com",
-          roleId: 4,
-          avatar: "CR",
-          color: "#e67e22",
-        },
-      ];
+      // let users = [
+      //   {
+      //     id: 1,
+      //     name: "John Smith",
+      //     email: "john@company.com",
+      //     roleId: 1,
+      //     avatar: "JS",
+      //     color: "#4361ee",
+      //   },
+      //   {
+      //     id: 2,
+      //     name: "Sarah Johnson",
+      //     email: "sarah@company.com",
+      //     roleId: 1,
+      //     avatar: "SJ",
+      //     color: "#7209b7",
+      //   },
+      //   {
+      //     id: 3,
+      //     name: "Michael Brown",
+      //     email: "michael@company.com",
+      //     roleId: 2,
+      //     avatar: "MB",
+      //     color: "#4cc9f0",
+      //   },
+      //   {
+      //     id: 4,
+      //     name: "Emily Davis",
+      //     email: "emily@company.com",
+      //     roleId: 2,
+      //     avatar: "ED",
+      //     color: "#f72585",
+      //   },
+      //   {
+      //     id: 5,
+      //     name: "David Wilson",
+      //     email: "david@company.com",
+      //     roleId: 2,
+      //     avatar: "DW",
+      //     color: "#ff9e00",
+      //   },
+      //   {
+      //     id: 6,
+      //     name: "Lisa Taylor",
+      //     email: "lisa@company.com",
+      //     roleId: 3,
+      //     avatar: "LT",
+      //     color: "#2ecc71",
+      //   },
+      //   {
+      //     id: 7,
+      //     name: "Robert Anderson",
+      //     email: "robert@company.com",
+      //     roleId: 3,
+      //     avatar: "RA",
+      //     color: "#4895ef",
+      //   },
+      //   {
+      //     id: 8,
+      //     name: "Jennifer Thomas",
+      //     email: "jennifer@company.com",
+      //     roleId: 3,
+      //     avatar: "JT",
+      //     color: "#e74c3c",
+      //   },
+      //   {
+      //     id: 9,
+      //     name: "James Martinez",
+      //     email: "james@company.com",
+      //     roleId: 3,
+      //     avatar: "JM",
+      //     color: "#3498db",
+      //   },
+      //   {
+      //     id: 10,
+      //     name: "Patricia Garcia",
+      //     email: "patricia@company.com",
+      //     roleId: 4,
+      //     avatar: "PG",
+      //     color: "#9b59b6",
+      //   },
+      //   {
+      //     id: 11,
+      //     name: "Christopher Rodriguez",
+      //     email: "christopher@company.com",
+      //     roleId: 4,
+      //     avatar: "CR",
+      //     color: "#e67e22",
+      //   },
+      // ];
 
       let roles = [];
+      let users = [];
 
       async function fetchRoles() {
         try {
@@ -1154,6 +1155,27 @@
 
           const data = await res.json();
           roles = data;
+          renderRolesList();
+          // fetchRoles();
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
+        }
+      }
+
+      async function fetchUsers() {
+        try {
+          const res = await fetch("http://localhost:5000/api/users");
+
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error response:", text);
+            showNotification("Failed to load users", "danger");
+            return;
+          }
+
+          const data = await res.json();
+          users = data;
           renderRolesList();
           // fetchRoles();
         } catch (err) {
@@ -1517,11 +1539,10 @@
           return;
         }
 
-        if (
-          confirm(`Are you sure you want to delete the role "${role.name}"?`)
-        ) {
+        if (!confirm(`Are you sure you want to delete "${role.name}"?`)) {
           return;
         }
+
         try {
           // const index = roles.findIndex((r) => r._id === roleId);
           // if (index !== -1) {
