@@ -66,7 +66,7 @@ exports.createUser = async (req, res) => {
       <h2>Welcome to Inventory System</h2>
 
       <p>Your account has been created successfully.</p>
-
+        
       <p><b>Username:</b> ${username}</p>
       <p><b>Password:</b> ${plainPassword}</p>
 

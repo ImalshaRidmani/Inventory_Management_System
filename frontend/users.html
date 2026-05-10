@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1083,36 +1083,36 @@
 
     <script>
       // Roles Data (should match roles.html)
-      let roles = [
-        {
-          id: 1,
-          name: "Administrator",
-          description: "Full system access with all permissions",
-          color: "#4361ee",
-          level: 1,
-        },
-        {
-          id: 2,
-          name: "Manager",
-          description: "Can manage products, stock, and view reports",
-          color: "#7209b7",
-          level: 2,
-        },
-        {
-          id: 3,
-          name: "Staff",
-          description: "Basic access for daily operations",
-          color: "#4cc9f0",
-          level: 3,
-        },
-        {
-          id: 4,
-          name: "Viewer",
-          description: "Read-only access to view data",
-          color: "#ff9e00",
-          level: 4,
-        },
-      ];
+      // let roles = [
+      //   {
+      //     id: 1,
+      //     name: "Administrator",
+      //     description: "Full system access with all permissions",
+      //     color: "#4361ee",
+      //     level: 1,
+      //   },
+      //   {
+      //     id: 2,
+      //     name: "Manager",
+      //     description: "Can manage products, stock, and view reports",
+      //     color: "#7209b7",
+      //     level: 2,
+      //   },
+      //   {
+      //     id: 3,
+      //     name: "Staff",
+      //     description: "Basic access for daily operations",
+      //     color: "#4cc9f0",
+      //     level: 3,
+      //   },
+      //   {
+      //     id: 4,
+      //     name: "Viewer",
+      //     description: "Read-only access to view data",
+      //     color: "#ff9e00",
+      //     level: 4,
+      //   },
+      // ];
 
       // Users Data
       // let users = [
@@ -1128,6 +1128,10 @@
       //   { id: 10, firstName: "Patricia", lastName: "Garcia", email: "patricia.g@company.com", username: "pgarcia", roleId: 4, status: "Inactive", lastLogin: "2023-12-28 09:30", joinedDate: "2023-07-12", department: "Marketing", phone: "+1 (555) 012-3456", avatarColor: "#e67e22" }
       // ];
 
+      let users = [];
+      let roles = [];
+
+      // Fetch Users from API
       async function fetchUsers() {
         try {
           const res = await fetch("http://localhost:5000/api/users");
@@ -1143,6 +1147,31 @@
 
           users = data;
           renderUserTable();
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
+        }
+      }
+
+      // Fetch Roles from API
+      async function fetchRoles() {
+        try {
+          const res = await fetch("http://localhost:5000/api/roles");
+
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error response:", text);
+            showNotification("Failed to load roles", "danger");
+            return;
+          }
+
+          const data = await res.json();
+
+          roles = data;
+
+          populateRoleFilter();
+          populateRoleDropdown();
+          fetchUsers(); // Fetch users after roles to ensure role names/colors are available
         } catch (err) {
           console.error(err);
           showNotification("Network error", "danger");
