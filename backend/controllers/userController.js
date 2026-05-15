@@ -48,7 +48,7 @@ exports.createUser = async (req, res) => {
         otp: "",
         isFirstLogin: true,
       },
-      roleId,
+      // roleId,
       status,
       department,
     });

@@ -31,10 +31,10 @@ const userSchema = new mongoose.Schema({
       default: true
     } // 👈 default password
   },
-  roleId: {
-    type: Number,
-    enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viwer
-  },
+  // roleId: {
+  //   type: Number,
+  //   enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viwer
+  // },
   status: {
     type: String
   },
