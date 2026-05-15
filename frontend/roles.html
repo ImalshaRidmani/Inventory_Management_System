@@ -950,6 +950,7 @@
           <div class="form-group">
             <label>Role Level</label>
             <select id="roleLevel">
+              <option value="">None</option>
               <option value="1">Level 1 - Highest (Administrator)</option>
               <option value="2">Level 2 - Manager</option>
               <option value="3">Level 3 - Supervisor</option>
@@ -1247,7 +1248,7 @@
 
         roles.forEach((role) => {
           const roleDiv = document.createElement("div");
-          roleDiv.className = `role-item ${currentSelectedRoleId === role.id ? "active" : ""}`;
+          roleDiv.className = `role-item ${currentSelectedRoleId === role._id ? "active" : ""}`;
           roleDiv.onclick = () => selectRole(role._id);
 
           roleDiv.innerHTML = `
@@ -1383,7 +1384,7 @@
         }
 
         const roleIndex = roles.findIndex(
-          (r) => r.id === currentSelectedRoleId,
+          (r) => r._id === currentSelectedRoleId,
         );
         if (roleIndex === -1) return;
 
@@ -1439,11 +1440,9 @@
       // Save Role
       async function saveRole() {
         const name = document.getElementById("roleName").value.trim();
-        const description = document
-          .getElementById("roleDescription")
-          .value.trim();
+        const description = document.getElementById("roleDescription").value.trim();
         const color = document.getElementById("roleColor").value;
-        const level = parseInt(document.getElementById("roleLevel").value);
+        const level = document.getElementById("roleLevel").value;
         let res;
 
         if (!name) {
@@ -1598,8 +1597,8 @@
         // Populate user dropdown with users not in this role
         const usersInRole = users
           .filter((u) => u.roleId === currentSelectedRoleId)
-          .map((u) => u.id);
-        const availableUsers = users.filter((u) => !usersInRole.includes(u.id));
+          .map((u) => u._id);
+        const availableUsers = users.filter((u) => !usersInRole.includes(u._id));
 
         const select = document.getElementById("userToAssign");
         select.innerHTML = '<option value="">-- Select User --</option>';
@@ -1621,13 +1620,13 @@
           return;
         }
 
-        const userIndex = users.findIndex((u) => u.id === userId);
+        const userIndex = users.findIndex((u) => u._id === userId);
         if (userIndex !== -1) {
           users[userIndex].roleId = currentSelectedRoleId;
 
           // Update user count in role
           const roleIndex = roles.findIndex(
-            (r) => r.id === currentSelectedRoleId,
+            (r) => r._id === currentSelectedRoleId,
           );
           if (roleIndex !== -1) {
             roles[roleIndex].userCount = users.filter(
@@ -1646,13 +1645,13 @@
       // Remove User from Role
       function removeUserFromRole(userId) {
         if (confirm("Remove this user from the role?")) {
-          const userIndex = users.findIndex((u) => u.id === userId);
+          const userIndex = users.findIndex((u) => u._id === userId);
           if (userIndex !== -1) {
             users[userIndex].roleId = null;
 
             // Update user count in role
             const roleIndex = roles.findIndex(
-              (r) => r.id === currentSelectedRoleId,
+              (r) => r._id === currentSelectedRoleId,
             );
             if (roleIndex !== -1) {
               roles[roleIndex].userCount = users.filter(
@@ -1758,6 +1757,7 @@
       document.addEventListener("DOMContentLoaded", function () {
         // renderRolesList();
         fetchRoles();
+        fetchUsers();
         updateStats();
 
         // Close modal when clicking outside

@@ -936,8 +936,8 @@
                 <th>Email</th>
                 <th>Role</th>
                 <th>Status</th>
-                <th>Last Login</th>
-                <th>Joined</th>
+                <!-- <th>Last Login</th> -->
+                <!-- <th>Joined</th> -->
                 <th>Actions</th>
               </tr>
             </thead>
@@ -1083,36 +1083,36 @@
 
     <script>
       // Roles Data (should match roles.html)
-      // let roles = [
-      //   {
-      //     id: 1,
-      //     name: "Administrator",
-      //     description: "Full system access with all permissions",
-      //     color: "#4361ee",
-      //     level: 1,
-      //   },
-      //   {
-      //     id: 2,
-      //     name: "Manager",
-      //     description: "Can manage products, stock, and view reports",
-      //     color: "#7209b7",
-      //     level: 2,
-      //   },
-      //   {
-      //     id: 3,
-      //     name: "Staff",
-      //     description: "Basic access for daily operations",
-      //     color: "#4cc9f0",
-      //     level: 3,
-      //   },
-      //   {
-      //     id: 4,
-      //     name: "Viewer",
-      //     description: "Read-only access to view data",
-      //     color: "#ff9e00",
-      //     level: 4,
-      //   },
-      // ];
+      let roles = [
+        {
+          id: 1,
+          name: "Administrator",
+          description: "Full system access with all permissions",
+          color: "#4361ee",
+          level: 1,
+        },
+        {
+          id: 2,
+          name: "Manager",
+          description: "Can manage products, stock, and view reports",
+          color: "#7209b7",
+          level: 2,
+        },
+        {
+          id: 3,
+          name: "Staff",
+          description: "Basic access for daily operations",
+          color: "#4cc9f0",
+          level: 3,
+        },
+        {
+          id: 4,
+          name: "Viewer",
+          description: "Read-only access to view data",
+          color: "#ff9e00",
+          level: 4,
+        },
+      ];
 
       // Users Data
       // let users = [
@@ -1129,7 +1129,7 @@
       // ];
 
       let users = [];
-      let roles = [];
+      // let roles = [];
 
       // Fetch Users from API
       async function fetchUsers() {
@@ -1286,8 +1286,8 @@
               ${user.status}
             </span>
           </td>
-          <td>${user.lastLogin}</td>
-          <td>${user.joinedDate}</td>
+          <!-- <td>${user.lastLogin}</td> -->
+          <!-- <td>${user.joinedDate}</td> -->
           <td>
             <div class="action-buttons">
               <button class="btn-edit" onclick="editUser('${user._id}')" title="Edit User">
