@@ -9,10 +9,10 @@ const roleSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  roleId: {
-    type: Number,
-    enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viewer
-  },
+  // roleId: {
+  //   type: Number,
+  //   enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viewer
+  // },
   avatar: {
     type: String,
     default: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
@@ -20,6 +20,10 @@ const roleSchema = new mongoose.Schema({
   color: {
     type: String,
     default: "#000000",
+  },
+  permissions: {
+    type: [String],
+    default: [],
   },
 }, { timestamps: true });
  

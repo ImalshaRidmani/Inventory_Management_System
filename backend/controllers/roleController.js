@@ -6,7 +6,7 @@ exports.createRole = async (req, res) => {
     const {
       name,
       description,
-      roleId,
+      // roleId,
       avatar,
       color
     } = req.body;
@@ -22,7 +22,7 @@ exports.createRole = async (req, res) => {
     const role = new Role({
       name,
       description,
-      roleId,
+      // roleId,
       avatar,
       color
     });
@@ -97,7 +97,7 @@ exports.deleteRole = async (req, res) => {
 exports.updateRole = async (req, res) => {
   try {
     const roleId = req.params.id;
-    const { name, description, avatar, color } = req.body;
+    const { name, description, avatar, color, permissions } = req.body;
 
     // 🔴 Check duplicate (excluding current role)
     const existingRole = await Role.findOne({
@@ -118,6 +118,7 @@ exports.updateRole = async (req, res) => {
         description,
         avatar,
         color,
+        permissions: permissions || [],
       },
       { new: true }, // return updated data
     );
