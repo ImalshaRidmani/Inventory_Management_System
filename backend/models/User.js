@@ -31,10 +31,10 @@ const userSchema = new mongoose.Schema({
       default: true
     } // 👈 default password
   },
-  // roleId: {
-  //   type: Number,
-  //   enum: [1, 2, 3, 4], // 1-Admin, 2-Manager, 3-Employee, 4-Viwer
-  // },
+  roleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Role",
+  },
   status: {
     type: String
   },
@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema({
   isFirstLogin: {
     type: Boolean,
     default: true, // 👈 important
+  },
+  avatarColor: {
+    type: String,
+    default: "#4361ee",
   }
 }, { timestamps: true });
 

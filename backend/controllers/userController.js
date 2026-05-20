@@ -37,6 +37,21 @@ exports.createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
+    // Generate avatar color
+    const colors = [
+      "#4361ee",
+      "#7209b7",
+      "#4cc9f0",
+      "#f72585",
+      "#ff9e00",
+      "#2ecc71",
+      "#3498db",
+      "#e74c3c",
+      "#9b59b6",
+      "#e67e22",
+    ];
+    const avatarColor = colors[Math.floor(Math.random() * colors.length)];
+
     const user = new User({
       firstName,
       lastName,
@@ -48,9 +63,10 @@ exports.createUser = async (req, res) => {
         otp: "",
         isFirstLogin: true,
       },
-      // roleId,
+      roleId,
       status,
       department,
+      avatarColor,
     });
 
     await user.save();
@@ -113,7 +129,7 @@ exports.getUsers = async (req, res) => {
   try {
     console.log("GET /users hit");
 
-    const users = await User.find();
+    const users = await User.find().populate("roleId", "name color description");
 
     console.log("Users fetched:", users.length);
 
