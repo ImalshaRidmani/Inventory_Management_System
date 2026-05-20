@@ -1157,7 +1157,7 @@
           const data = await res.json();
           roles = data;
           renderRolesList();
-          // fetchRoles();
+          updateStats();
         } catch (err) {
           console.error(err);
           showNotification("Network error", "danger");
@@ -1178,7 +1178,7 @@
           const data = await res.json();
           users = data;
           renderRolesList();
-          // fetchRoles();
+          updateStats();
         } catch (err) {
           console.error(err);
           showNotification("Network error", "danger");
@@ -1251,6 +1251,9 @@
           roleDiv.className = `role-item ${currentSelectedRoleId === role._id ? "active" : ""}`;
           roleDiv.onclick = () => selectRole(role._id);
 
+          // Count users with this role
+          const userCount = users.filter((u) => u.roleId && u.roleId._id === role._id).length;
+
           roleDiv.innerHTML = `
             <div class="role-info">
               <h4>
@@ -1258,7 +1261,7 @@
                 ${role.name}
               </h4>
               <p>${role.description.substring(0, 60)}${role.description.length > 60 ? "..." : ""}</p>
-              <span class="role-badge">${role.userCount} users</span>
+              <span class="role-badge">${userCount} users</span>
             </div>
             <div class="role-actions">
               <button class="edit-role" onclick="event.stopPropagation(); editRole('${role._id}')" title="Edit Role">
@@ -1309,7 +1312,7 @@
       // Render Users in Selected Role
       function renderUsersInRole(roleId) {
         const container = document.getElementById("usersInRoleList");
-        const usersInRole = users.filter((u) => u.roleId === roleId);
+        const usersInRole = users.filter((u) => u.roleId && u.roleId._id === roleId);
 
         if (usersInRole.length === 0) {
           container.innerHTML = `
@@ -1326,16 +1329,18 @@
         usersInRole.forEach((user) => {
           const userDiv = document.createElement("div");
           userDiv.className = "user-item";
+          const fullName = `${user.firstName} ${user.lastName}`;
+          const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
 
           userDiv.innerHTML = `
             <div style="display: flex; align-items: center; gap: 15px;">
-              <div class="user-avatar" style="background: ${user.color}">${user.avatar}</div>
+              <div class="user-avatar" style="background: ${user.avatarColor}">${initials}</div>
               <div class="user-info">
-                <h4>${user.name}</h4>
+                <h4>${fullName}</h4>
                 <p>${user.email}</p>
               </div>
             </div>
-            <button class="remove-user" onclick="removeUserFromRole(${user._id})" title="Remove from role">
+            <button class="remove-user" onclick="removeUserFromRole('${user._id}')" title="Remove from role">
               <i class="fas fa-user-minus"></i>
             </button>
           `;
@@ -1356,11 +1361,11 @@
           let itemsHtml = "";
           category.items.forEach((item) => {
             const isChecked =
-              role.permissions && role.permissions.includes(item.id);
+              role.permissions && role.permissions.includes(item._id);
             itemsHtml += `
               <div class="permission-item">
-                <input type="checkbox" id="perm_${item.id}" value="${item.id}" ${isChecked ? "checked" : ""}>
-                <label for="perm_${item.id}">${item.name}</label>
+                <input type="checkbox" id="perm_${item._id}" value="${item._id}" ${isChecked ? "checked" : ""}>
+                <label for="perm_${item._id}">${item.name}</label>
               </div>
             `;
           });
@@ -1377,7 +1382,7 @@
       }
 
       // Save Role Permissions
-      function saveRolePermissions() {
+      async function saveRolePermissions() {
         if (!currentSelectedRoleId) {
           showNotification("Please select a role first!", "warning");
           return;
@@ -1396,12 +1401,40 @@
             selectedPermissions.push(checkbox.value);
           });
 
-        roles[roleIndex].permissions = selectedPermissions;
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/roles/${currentSelectedRoleId}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: roles[roleIndex].name,
+                description: roles[roleIndex].description,
+                avatar: roles[roleIndex].avatar,
+                color: roles[roleIndex].color,
+                permissions: selectedPermissions,
+              }),
+            },
+          );
 
-        showNotification(
-          `Permissions saved for ${roles[roleIndex].name}`,
-          "success",
-        );
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Update error:", text);
+            showNotification("Failed to save permissions", "danger");
+            return;
+          }
+
+          const updatedRole = await res.json();
+          roles[roleIndex].permissions = selectedPermissions;
+
+          showNotification(
+            `Permissions saved for ${roles[roleIndex].name}`,
+            "success",
+          );
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
+        }
       }
 
       // Open Role Modal
@@ -1530,7 +1563,7 @@
         if (!role) return;
 
         // Check if role has users
-        const usersInRole = users.filter((u) => u.roleId === roleId);
+        const usersInRole = users.filter((u) => u.roleId && u.roleId._id === roleId);
         if (usersInRole.length > 0) {
           showNotification(
             `Cannot delete role "${role.name}" because it has ${usersInRole.length} users assigned. Reassign or remove users first.`,
@@ -1597,16 +1630,17 @@
 
         // Populate user dropdown with users not in this role
         const usersInRole = users
-          .filter((u) => u.roleId === currentSelectedRoleId)
+          .filter((u) => u.roleId && u.roleId._id === currentSelectedRoleId)
           .map((u) => u._id);
         const availableUsers = users.filter((u) => !usersInRole.includes(u._id));
 
         const select = document.getElementById("userToAssign");
         select.innerHTML = '<option value="">-- Select User --</option>';
         availableUsers.forEach((user) => {
+          const fullName = `${user.firstName} ${user.lastName}`;
           const option = document.createElement("option");
           option.value = user._id;
-          option.textContent = `${user.name} (${user.email})`;
+          option.textContent = `${fullName} (${user.email})`;
           select.appendChild(option);
         });
 
@@ -1614,56 +1648,82 @@
       }
 
       // Assign User to Role
-      function assignUserToRole() {
-        const userId = parseInt(document.getElementById("userToAssign").value);
+      async function assignUserToRole() {
+        const userId = document.getElementById("userToAssign").value;
         if (!userId) {
           showNotification("Please select a user!", "warning");
           return;
         }
 
-        const userIndex = users.findIndex((u) => u._id === userId);
-        if (userIndex !== -1) {
-          users[userIndex].roleId = currentSelectedRoleId;
+        try {
+          const user = users.find((u) => u._id === userId);
+          if (!user) return;
 
-          // Update user count in role
-          const roleIndex = roles.findIndex(
-            (r) => r._id === currentSelectedRoleId,
-          );
-          if (roleIndex !== -1) {
-            roles[roleIndex].userCount = users.filter(
-              (u) => u.roleId === currentSelectedRoleId,
-            ).length;
+          // Send update request to backend
+          const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              firstName: user.firstName,
+              lastName: user.lastName,
+              username: user.username,
+              email: user.email,
+              phone: user.phone,
+              roleId: currentSelectedRoleId,
+              status: user.status,
+            }),
+          });
+
+          if (!res.ok) {
+            showNotification("Failed to assign user to role", "danger");
+            return;
           }
 
           showNotification("User assigned to role successfully!", "success");
           closeModal();
-          // renderRolesList();
           fetchRoles();
+          fetchUsers();
           renderUsersInRole(currentSelectedRoleId);
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
         }
       }
 
       // Remove User from Role
-      function removeUserFromRole(userId) {
+      async function removeUserFromRole(userId) {
         if (confirm("Remove this user from the role?")) {
-          const userIndex = users.findIndex((u) => u._id === userId);
-          if (userIndex !== -1) {
-            users[userIndex].roleId = null;
+          try {
+            const user = users.find((u) => u._id === userId);
+            if (!user) return;
 
-            // Update user count in role
-            const roleIndex = roles.findIndex(
-              (r) => r._id === currentSelectedRoleId,
-            );
-            if (roleIndex !== -1) {
-              roles[roleIndex].userCount = users.filter(
-                (u) => u.roleId === currentSelectedRoleId,
-              ).length;
+            // Send update request to backend
+            const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                email: user.email,
+                phone: user.phone,
+                roleId: null,
+                status: user.status,
+              }),
+            });
+
+            if (!res.ok) {
+              showNotification("Failed to remove user from role", "danger");
+              return;
             }
 
             showNotification("User removed from role successfully!", "success");
-            // renderRolesList();
             fetchRoles();
+            fetchUsers();
             renderUsersInRole(currentSelectedRoleId);
+          } catch (err) {
+            console.error(err);
+            showNotification("Network error", "danger");
           }
         }
       }
