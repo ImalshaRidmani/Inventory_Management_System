@@ -947,7 +947,7 @@
             <input type="hidden" id="roleColor" value="#4361ee" />
           </div>
 
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label>Role Level</label>
             <select id="roleLevel">
               <option value="">None</option>
@@ -960,7 +960,7 @@
             <div class="form-help">
               Higher level roles have more system access
             </div>
-          </div>
+          </div> -->
         </div>
 
         <div class="modal-footer">
@@ -1417,7 +1417,7 @@
             document.getElementById("roleName").value = role.name;
             document.getElementById("roleDescription").value = role.description;
             document.getElementById("roleColor").value = role.color;
-            document.getElementById("roleLevel").value = String(role.level);
+            // document.getElementById("roleLevel").value = String(role.level);
             selectRoleColor(role.color);
           }
         } else {
@@ -1425,7 +1425,7 @@
           document.getElementById("roleName").value = "";
           document.getElementById("roleDescription").value = "";
           document.getElementById("roleColor").value = "#4361ee";
-          document.getElementById("roleLevel").value = "4";
+          // document.getElementById("roleLevel").value = "4";
           selectRoleColor("#4361ee");
         }
 
@@ -1442,7 +1442,7 @@
         const name = document.getElementById("roleName").value.trim();
         const description = document.getElementById("roleDescription").value.trim();
         const color = document.getElementById("roleColor").value;
-        const level = document.getElementById("roleLevel").value;
+        // const level = document.getElementById("roleLevel").value;
         let res;
 
         if (!name) {
@@ -1459,13 +1459,13 @@
             roles[roleIndex].name = name;
             roles[roleIndex].description = description;
             roles[roleIndex].color = color;
-            roles[roleIndex].level = level;
+            // roles[roleIndex].level = level;
 
             const updatedRoleData = {
               name,
               description,
               color,
-              level,
+              // level,
             };
 
             // UPDATE ROLE IN BACKEND
@@ -1495,7 +1495,7 @@
             name: name,
             description: description,
             color: color,
-            level: level,
+            // level: level,
             userCount: 0,
             permissions: ["view_dashboard"],
           };
@@ -1503,7 +1503,8 @@
           res = await fetch("http://localhost:5000/api/roles", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, description, color, level }),
+            body: JSON.stringify({ name, description, color, // level
+             }),
           });
           const createdRole = await res.json();
           roles.push(createdRole);

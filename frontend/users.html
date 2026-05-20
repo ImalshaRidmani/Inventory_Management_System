@@ -1083,36 +1083,36 @@
 
     <script>
       // Roles Data (should match roles.html)
-      let roles = [
-        {
-          id: 1,
-          name: "Administrator",
-          description: "Full system access with all permissions",
-          color: "#4361ee",
-          level: 1,
-        },
-        {
-          id: 2,
-          name: "Manager",
-          description: "Can manage products, stock, and view reports",
-          color: "#7209b7",
-          level: 2,
-        },
-        {
-          id: 3,
-          name: "Staff",
-          description: "Basic access for daily operations",
-          color: "#4cc9f0",
-          level: 3,
-        },
-        {
-          id: 4,
-          name: "Viewer",
-          description: "Read-only access to view data",
-          color: "#ff9e00",
-          level: 4,
-        },
-      ];
+      // let roles = [
+      //   {
+      //     id: 1,
+      //     name: "Administrator",
+      //     description: "Full system access with all permissions",
+      //     color: "#4361ee",
+      //     level: 1,
+      //   },
+      //   {
+      //     id: 2,
+      //     name: "Manager",
+      //     description: "Can manage products, stock, and view reports",
+      //     color: "#7209b7",
+      //     level: 2,
+      //   },
+      //   {
+      //     id: 3,
+      //     name: "Staff",
+      //     description: "Basic access for daily operations",
+      //     color: "#4cc9f0",
+      //     level: 3,
+      //   },
+      //   {
+      //     id: 4,
+      //     name: "Viewer",
+      //     description: "Read-only access to view data",
+      //     color: "#ff9e00",
+      //     level: 4,
+      //   },
+      // ];
 
       // Users Data
       // let users = [
@@ -1129,7 +1129,7 @@
       // ];
 
       let users = [];
-      // let roles = [];
+      let roles = [];
 
       // Fetch Users from API
       async function fetchUsers() {
@@ -1184,21 +1184,58 @@
       let currentPage = 1;
       const itemsPerPage = 5;
 
+      // Generate consistent avatar color based on username
+      function getAvatarColor(user) {
+        // Use stored color if available
+        if (user.avatarColor) return user.avatarColor;
+
+        // Fallback: generate from username hash
+        const colors = [
+          "#4361ee",
+          "#7209b7",
+          "#4cc9f0",
+          "#f72585",
+          "#ff9e00",
+          "#2ecc71",
+          "#3498db",
+          "#e74c3c",
+          "#9b59b6",
+          "#e67e22",
+        ];
+        let hash = 0;
+        for (let i = 0; i < user.username.length; i++) {
+          hash = user.username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+      }
+
       // Get Role Name by ID
       function getRoleName(roleId) {
-        const role = roles.find((r) => r.id === roleId);
+        if (!roleId) return "No Role";
+        // Handle populated role object
+        if (typeof roleId === "object" && roleId.name) {
+          return roleId.name;
+        }
+        // Handle role ID string/ObjectId
+        const role = roles.find((r) => r._id.toString() === roleId?.toString());
         return role ? role.name : "No Role";
       }
 
       // Get Role Color by ID
       function getRoleColor(roleId) {
-        const role = roles.find((r) => r.id === roleId);
+        if (!roleId) return "#6c757d";
+        // Handle populated role object
+        if (typeof roleId === "object" && roleId.color) {
+          return roleId.color;
+        }
+        // Handle role ID string/ObjectId
+        const role = roles.find((r) => r._id.toString() === roleId?.toString());
         return role ? role.color : "#6c757d";
       }
 
       // Get Role Badge Class
       function getRoleBadgeClass(roleId) {
-        const role = roles.find((r) => r.id === roleId);
+        const role = roles.find((r) => r._id.toString() === roleId?.toString());
         if (!role) return "";
         if (role.name === "Administrator") return "role-admin";
         if (role.name === "Manager") return "role-manager";
@@ -1215,7 +1252,9 @@
           .value.toLowerCase();
 
         let filteredUsers = users.filter((user) => {
-          const matchesRole = !roleFilter || user.roleId == roleFilter;
+          // Get roleId - handle both populated object and raw ID
+          const userRoleId = typeof user.roleId === "object" ? user.roleId?._id : user.roleId;
+          const matchesRole = !roleFilter || userRoleId?.toString() === roleFilter.toString();
           const matchesStatus = !statusFilter || user.status === statusFilter;
           const matchesSearch =
             !searchTerm ||
@@ -1257,6 +1296,7 @@
               (user.lastName?.charAt(0) || "");
             const roleName = getRoleName(user.roleId);
             const roleColor = getRoleColor(user.roleId);
+            const avatarColor = getAvatarColor(user);
 
             let statusClass = "status-active";
             if (user.status === "Inactive") statusClass = "status-inactive";
@@ -1266,7 +1306,7 @@
             row.innerHTML = `
           <td>
             <div class="user-info">
-              <div class="user-avatar" style="background: ${user.avatarColor}">${initials}</div>
+              <div class="user-avatar" style="background: ${avatarColor}">${initials}</div>
               <div class="user-details">
                 <h4>${user.firstName} ${user.lastName}</h4>
                 <p>@${user.username}</p>
@@ -1378,7 +1418,7 @@
 
         roles.forEach((role) => {
           const option = document.createElement("option");
-          option.value = role.id;
+          option.value = role._id;
           option.textContent = role.name;
           roleFilter.appendChild(option);
         });
@@ -1391,8 +1431,8 @@
 
         roles.forEach((role) => {
           const option = document.createElement("option");
-          option.value = role.id;
-          option.textContent = `${role.name} (Level ${role.level})`;
+          option.value = role._id;
+          option.textContent = role.name;
           roleSelect.appendChild(option);
         });
       }
@@ -1403,7 +1443,7 @@
         roleList.innerHTML = "";
 
         roles.forEach((role) => {
-          const isSelected = role.id === selectedRoleId;
+          const isSelected = role._id === selectedRoleId;
           const roleDiv = document.createElement("div");
           roleDiv.className = `role-option ${isSelected ? "selected" : ""}`;
           roleDiv.onclick = () => {
@@ -1411,11 +1451,11 @@
               .querySelectorAll(".role-option")
               .forEach((opt) => opt.classList.remove("selected"));
             roleDiv.classList.add("selected");
-            selectedRoleIdForChange = role.id;
+            selectedRoleIdForChange = role._id;
           };
 
           // Get permission count for display
-          const permissionCount = getPermissionCountForRole(role.id);
+          const permissionCount = getPermissionCountForRole(role._id);
 
           roleDiv.innerHTML = `
         <div class="role-color" style="background: ${role.color};"></div>
@@ -1435,7 +1475,7 @@
 
       // Get Permission Count for Role (simulated)
       function getPermissionCountForRole(roleId) {
-        const role = roles.find((r) => r.id === roleId);
+        const role = roles.find((r) => r._id === roleId);
         if (role.name === "Administrator") return 20;
         if (role.name === "Manager") return 12;
         if (role.name === "Staff") return 6;
@@ -1462,12 +1502,12 @@
             document.getElementById("lastName").value = user.lastName;
             document.getElementById("userEmail").value = user.email;
             document.getElementById("username").value = user.username;
-            document.getElementById("userRole").value = user.roleId;
+            // Handle both populated object and raw ID
+            const roleId = typeof user.roleId === "object" ? user.roleId._id : user.roleId;
+            document.getElementById("userRole").value = roleId;
             document.getElementById("userStatus").value = user.status;
             document.getElementById("phone").value = user.phone || "";
             document.getElementById("department").value = user.department || "";
-            // document.getElementById('password').value = '';
-            // document.getElementById('confirmPassword').value = '';
           }
         } else {
           title.textContent = "Add New User";
@@ -1504,7 +1544,8 @@
         const lastName = document.getElementById("lastName").value.trim();
         const email = document.getElementById("userEmail").value.trim();
         const username = document.getElementById("username").value.trim();
-        const roleId = parseInt(document.getElementById("userRole").value);
+        // const roleId = parseInt(document.getElementById("userRole").value);
+        const roleId = document.getElementById("userRole").value;
         const status = document.getElementById("userStatus").value;
         const phone = document.getElementById("phone").value.trim();
         const department = document.getElementById("department").value.trim();
@@ -1566,7 +1607,7 @@
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
         if (currentEditMode) {
-          // Update existing user
+          // Update existing user (don't change avatar color)
           try {
             const response = await fetch(
               `http://localhost:5000/api/users/${currentUserId}`,
@@ -1603,7 +1644,7 @@
             showNotification("Error updating user", "danger");
           }
         } else {
-          // Create new user
+          // Create new user (backend generates color)
           try {
             const res = await fetch("http://localhost:5000/api/users", {
               method: "POST",
@@ -1721,7 +1762,7 @@
       // Open Change Role Modal
       function openChangeRoleModal(userId) {
         currentUserId = userId;
-        const user = users.find((u) => u.id === userId);
+        const user = users.find((u) => u._id === userId);
         if (!user) return;
 
         document.getElementById("changeRoleUserName").value =
@@ -1733,35 +1774,111 @@
       }
 
       // Update User Role
-      function updateUserRole() {
+      async function updateUserRole() {
         if (!currentUserId || !selectedRoleIdForChange) {
           showNotification("Please select a role!", "warning");
           return;
         }
 
-        const userIndex = users.findIndex((u) => u.id === currentUserId);
-        if (userIndex !== -1) {
-          const oldRoleName = getRoleName(users[userIndex].roleId);
-          const newRoleName = getRoleName(selectedRoleIdForChange);
+        const user = users.find((u) => u._id === currentUserId);
+        if (!user) return;
 
-          users[userIndex].roleId = selectedRoleIdForChange;
+        const oldRoleName = getRoleName(user.roleId);
+        const newRoleName = getRoleName(selectedRoleIdForChange);
+
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/users/${currentUserId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                roleId: selectedRoleIdForChange,
+              }),
+            },
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            showNotification(data.message, "danger");
+            return;
+          }
+
           showNotification(
             `Role changed from "${oldRoleName}" to "${newRoleName}"`,
             "success",
           );
           closeModal();
-          // renderUserTable();
-          fetchUsers();
+          fetchUsers(); // reload from API
+        } catch (err) {
+          console.error(err);
+          showNotification("Error updating role", "danger");
         }
       }
 
-      // Export Users
+      // Export Users to CSV
       function exportUsers() {
-        showNotification("Exporting user list to CSV...", "success");
-        // In a real app, this would generate and download a CSV file
-        setTimeout(() => {
-          showNotification("User list exported successfully!", "success");
-        }, 1000);
+        if (users.length === 0) {
+          showNotification("No users to export!", "warning");
+          return;
+        }
+
+        // Prepare CSV headers
+        const headers = [
+          "First Name",
+          "Last Name",
+          "Username",
+          "Email",
+          "Phone",
+          "Role",
+          "Status",
+          "Department",
+          "Created Date",
+        ];
+
+        // Prepare CSV rows
+        const rows = users.map((user) => {
+          const roleName = getRoleName(user.roleId);
+          const createdDate = new Date(user.createdAt).toLocaleDateString();
+          return [
+            user.firstName,
+            user.lastName,
+            user.username,
+            user.email,
+            user.phone || "",
+            roleName,
+            user.status || "Active",
+            user.department || "General",
+            createdDate,
+          ];
+        });
+
+        // Convert to CSV string
+        const csvContent =
+          headers.join(",") +
+          "\n" +
+          rows.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute("href", url);
+        link.setAttribute("download", `users_${new Date().toISOString().split("T")[0]}.csv`);
+        link.style.visibility = "hidden";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification(
+          `${users.length} users exported successfully!`,
+          "success",
+        );
       }
 
       // Show Notification
@@ -1850,7 +1967,7 @@
         populateRoleFilter();
         populateRoleDropdown();
         // renderUserTable();
-        fetchUsers();
+        fetchRoles();
 
         // Add event listeners
         document.getElementById("roleFilter").addEventListener("change", () => {
