@@ -645,6 +645,8 @@
 
     .modal-body {
       padding: 25px;
+      max-height: 70vh;
+      overflow-y: auto;
     }
 
     .form-group {
@@ -1180,16 +1182,38 @@
 
 <script>
   // Stock Data
-  let stockData = [
-    { id: 1, name: "iPhone 13 Pro", sku: "IP13P-256-BLK", category: "Electronics", currentStock: 25, minRequired: 10, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-15", value: 24999.75 },
-    { id: 2, name: "Samsung Galaxy S22", sku: "SGS22-128-BLU", category: "Electronics", currentStock: 8, minRequired: 15, maxCapacity: 80, status: "Low Stock", lastUpdated: "2024-01-14", value: 15999.20 },
-    { id: 3, name: "Nike Air Max", sku: "NAMAX-10-WHT", category: "Clothing", currentStock: 42, minRequired: 20, maxCapacity: 200, status: "In Stock", lastUpdated: "2024-01-13", value: 5459.58 },
-    { id: 4, name: "MacBook Pro 14\"", sku: "MBP14-512-SLV", category: "Electronics", currentStock: 5, minRequired: 8, maxCapacity: 50, status: "Low Stock", lastUpdated: "2024-01-15", value: 39999.75 },
-    { id: 5, name: "Coffee Maker", sku: "CMKR-DRP-BLK", category: "Home", currentStock: 0, minRequired: 5, maxCapacity: 40, status: "Out of Stock", lastUpdated: "2024-01-10", value: 0 },
-    { id: 6, name: "Wireless Headphones", sku: "WHDP-NC-BLK", category: "Electronics", currentStock: 35, minRequired: 15, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-14", value: 6999.65 },
-    { id: 7, name: "Office Chair", sku: "OFCH-ERG-BLK", category: "Home", currentStock: 12, minRequired: 10, maxCapacity: 50, status: "In Stock", lastUpdated: "2024-01-12", value: 11999.40 },
-    { id: 8, name: "Gaming Mouse", sku: "GMSE-RGB-BLK", category: "Electronics", currentStock: 3, minRequired: 12, maxCapacity: 60, status: "Low Stock", lastUpdated: "2024-01-15", value: 899.97 }
-  ];
+  // let stockData = [
+  //   { id: 1, name: "iPhone 13 Pro", sku: "IP13P-256-BLK", category: "Electronics", currentStock: 25, minRequired: 10, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-15", value: 24999.75 },
+  //   { id: 2, name: "Samsung Galaxy S22", sku: "SGS22-128-BLU", category: "Electronics", currentStock: 8, minRequired: 15, maxCapacity: 80, status: "Low Stock", lastUpdated: "2024-01-14", value: 15999.20 },
+  //   { id: 3, name: "Nike Air Max", sku: "NAMAX-10-WHT", category: "Clothing", currentStock: 42, minRequired: 20, maxCapacity: 200, status: "In Stock", lastUpdated: "2024-01-13", value: 5459.58 },
+  //   { id: 4, name: "MacBook Pro 14\"", sku: "MBP14-512-SLV", category: "Electronics", currentStock: 5, minRequired: 8, maxCapacity: 50, status: "Low Stock", lastUpdated: "2024-01-15", value: 39999.75 },
+  //   { id: 5, name: "Coffee Maker", sku: "CMKR-DRP-BLK", category: "Home", currentStock: 0, minRequired: 5, maxCapacity: 40, status: "Out of Stock", lastUpdated: "2024-01-10", value: 0 },
+  //   { id: 6, name: "Wireless Headphones", sku: "WHDP-NC-BLK", category: "Electronics", currentStock: 35, minRequired: 15, maxCapacity: 100, status: "In Stock", lastUpdated: "2024-01-14", value: 6999.65 },
+  //   { id: 7, name: "Office Chair", sku: "OFCH-ERG-BLK", category: "Home", currentStock: 12, minRequired: 10, maxCapacity: 50, status: "In Stock", lastUpdated: "2024-01-12", value: 11999.40 },
+  //   { id: 8, name: "Gaming Mouse", sku: "GMSE-RGB-BLK", category: "Electronics", currentStock: 3, minRequired: 12, maxCapacity: 60, status: "Low Stock", lastUpdated: "2024-01-15", value: 899.97 }
+  // ];
+  let stockData = [];
+
+  async function fetchStocks() {
+        try {
+          const res = await fetch("http://localhost:5000/api/stocks");
+
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error response:", text);
+            showNotification("Failed to load stock items", "danger");
+            return;
+          }
+
+          const data = await res.json();
+          stockData = data;
+          renderStockTable();
+          // updateStats();
+        } catch (err) {
+          console.error(err);
+          showNotification("Network error", "danger");
+        }
+      }
 
   let currentRestockProduct = null;
   let currentQuantity = 0;
@@ -1245,7 +1269,7 @@
         <td>${item.minRequired}</td>
         <td><span class="stock-status ${statusClass}"><span class="stock-indicator"></span>${item.status}</span></td>
         <td>${item.lastUpdated}</td>
-        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
+        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal('${item._id}')" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
       `;
       tbody.appendChild(row);
     });
@@ -1253,7 +1277,7 @@
 
   // Open Restock Modal with Slider
   function openRestockModal(productId) {
-    currentRestockProduct = stockData.find(p => p.id === productId);
+    currentRestockProduct = stockData.find(p => p._id === productId);
     if (!currentRestockProduct) return;
     
     currentQuantity = 0;
@@ -1307,7 +1331,7 @@
   }
 
   // Process Restock
-  function processRestock() {
+  async function processRestock() {
     if (!currentRestockProduct) {
       showNotification('No product selected!', 'danger');
       return;
@@ -1323,33 +1347,50 @@
     const deliveryDate = document.getElementById('restockDate').value;
     const notes = document.getElementById('restockNotes').value;
     
-    // Update stock
-    const productIndex = stockData.findIndex(p => p.id === currentRestockProduct.id);
-    if (productIndex !== -1) {
-      stockData[productIndex].currentStock += currentQuantity;
-      stockData[productIndex].lastUpdated = new Date().toISOString().split('T')[0];
-      
-      // Update status based on new quantity
-      if (stockData[productIndex].currentStock <= 0) {
-        stockData[productIndex].status = 'Out of Stock';
-      } else if (stockData[productIndex].currentStock < stockData[productIndex].minRequired) {
-        stockData[productIndex].status = 'Low Stock';
-      } else {
-        stockData[productIndex].status = 'In Stock';
-      }
-      
-      // Update value
-      if (cost > 0) {
-        stockData[productIndex].value = stockData[productIndex].currentStock * cost;
-      }
+    // Calculate new stock and status
+    const newStock = currentRestockProduct.currentStock + currentQuantity;
+    let newStatus = 'In Stock';
+    if (newStock <= 0) {
+      newStatus = 'Out of Stock';
+    } else if (newStock < currentRestockProduct.minRequired) {
+      newStatus = 'Low Stock';
     }
     
-    // Show success message with details
-    const totalCost = cost > 0 ? ` Total cost: $${(currentQuantity * cost).toLocaleString()}.` : '';
-    showNotification(`Successfully restocked ${currentQuantity} units of ${currentRestockProduct.name}!${totalCost}`, 'success');
+    // Calculate new value
+    const newValue = cost > 0 ? newStock * cost : currentRestockProduct.value;
     
-    closeModal();
-    renderStockTable();
+    // Prepare update data
+    const updateData = {
+      currentStock: newStock,
+      status: newStatus,
+      value: newValue,
+      lastUpdated: new Date()
+    };
+    
+    try {
+      // Send update to backend
+      const res = await fetch(`http://localhost:5000/api/stocks/${currentRestockProduct._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        showNotification(`Failed to restock: ${error.message || 'Unknown error'}`, 'danger');
+        return;
+      }
+      
+      // Show success message with details
+      const totalCost = cost > 0 ? ` Total cost: $${(currentQuantity * cost).toLocaleString()}.` : '';
+      showNotification(`Successfully restocked ${currentQuantity} units of ${currentRestockProduct.name}!${totalCost}`, 'success');
+      
+      closeModal();
+      fetchStocks();
+    } catch (err) {
+      console.error('Error restocking:', err);
+      showNotification('Network error while restocking', 'danger');
+    }
   }
 
   // Close Modal
@@ -1388,7 +1429,7 @@
   // Initialize
   document.addEventListener('DOMContentLoaded', function() {
     initCharts();
-    renderStockTable();
+    fetchStocks();
     
     // Filter functionality
     document.getElementById('categoryFilter').addEventListener('change', filterStock);
