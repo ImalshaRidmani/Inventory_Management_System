@@ -450,6 +450,11 @@
         box-shadow: 0 0 0 2px rgba(247, 37, 133, 0.2);
       }
 
+      .stock-indicator.not-set {
+        background: var(--gray);
+        box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
+      }
+
       .status-badge {
         display: inline-flex;
         align-items: center;
@@ -473,6 +478,11 @@
       .status-out-of-stock {
         background: rgba(247, 37, 133, 0.1);
         color: var(--danger);
+      }
+
+      .status-not-set {
+        background: rgba(108, 117, 125, 0.1);
+        color: var(--gray);
       }
 
       .action-buttons {
@@ -818,8 +828,9 @@
               <tr>
                 <!-- <th>ID</th> -->
                 <th>Product</th>
+                <th>SKU</th>
                 <th>Category</th>
-                <th>Stock</th>
+                <!-- <th>Stock</th> -->
                 <th>Price</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -845,7 +856,27 @@
           <button class="close" onclick="closeModal()">&times;</button>
         </div>
 
+        
+
         <div class="modal-body">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>SKU</label>
+              <input type="text" id="productSKU" placeholder="Enter SKU" />
+            </div>
+
+            <!-- <div class="form-group">
+              <label>Min Stock Threshold</label>
+              <input
+                type="number"
+                id="minStockThreshold"
+                placeholder="Min stock alert level"
+                value="10"
+              />
+            </div> -->
+          </div>
+
           <div class="form-group">
             <label>Product Name</label>
             <input
@@ -875,23 +906,6 @@
                 id="productPrice"
                 placeholder="0.00"
                 step="0.01"
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Quantity</label>
-              <input type="number" id="productQuantity" placeholder="0" />
-            </div>
-
-            <div class="form-group">
-              <label>Min Stock Threshold</label>
-              <input
-                type="number"
-                id="minStockThreshold"
-                placeholder="Min stock alert level"
-                value="10"
               />
             </div>
           </div>
@@ -957,62 +971,62 @@
       const itemsPerPage = 5;
 
       // Helper function to determine stock status based on quantity and threshold
-      function getStockStatus(quantity, minThreshold) {
-        if (quantity <= 0)
-          return {
-            status: "Out of Stock",
-            class: "out-of-stock",
-            badgeClass: "status-out-of-stock",
-            indicator: "low",
-          };
-        if (quantity < minThreshold)
-          return {
-            status: "Low Stock",
-            class: "low-stock",
-            badgeClass: "status-low-stock",
-            indicator: "medium",
-          };
-        return {
-          status: "In Stock",
-          class: "in-stock",
-          badgeClass: "status-in-stock",
-          indicator: "high",
-        };
-      }
+      // function getStockStatus(quantity, minThreshold) {
+      //   if (quantity <= 0)
+      //     return {
+      //       status: "Out of Stock",
+      //       class: "out-of-stock",
+      //       badgeClass: "status-out-of-stock",
+      //       indicator: "low",
+      //     };
+      //   if (quantity < minThreshold)
+      //     return {
+      //       status: "Low Stock",
+      //       class: "low-stock",
+      //       badgeClass: "status-low-stock",
+      //       indicator: "medium",
+      //     };
+      //   return {
+      //     status: "In Stock",
+      //     class: "in-stock",
+      //     badgeClass: "status-in-stock",
+      //     indicator: "high",
+      //   };
+      // }
 
       // Update product status based on quantity
-      function updateProductStatus(product) {
-        const statusInfo = getStockStatus(
-          product.quantity,
-          product.minThreshold,
-        );
-        product.status = statusInfo.status;
-        return statusInfo;
-      }
+    //   function updateProductStatus(product) {
+    //     const statusInfo = getStockStatus(
+    //       product.quantity,
+    //       product.minThreshold,
+    //     );
+    //     product.status = statusInfo.status;
+    //     return statusInfo;
+    //   }
 
-      // Get status badge HTML for table
-      function getStatusBadgeHTML(quantity, minThreshold) {
-        const statusInfo = getStockStatus(quantity, minThreshold);
-        return `
-      <span class="status-badge ${statusInfo.badgeClass}">
-        <span class="stock-indicator ${statusInfo.indicator}"></span>
-        ${statusInfo.status}
-      </span>
-    `;
-      }
+    //   // Get status badge HTML for table
+    //   function getStatusBadgeHTML(quantity, minThreshold) {
+    //     const statusInfo = getStockStatus(quantity, minThreshold);
+    //     return `
+    //   <span class="status-badge ${statusInfo.badgeClass}">
+    //     <span class="stock-indicator ${statusInfo.indicator}"></span>
+    //     ${statusInfo.status}
+    //   </span>
+    // `;
+    //   }
 
       // Get stock indicator for table
-      function getStockIndicatorHTML(quantity, minThreshold) {
-        const statusInfo = getStockStatus(quantity, minThreshold);
-        let indicatorClass = "high";
-        if (quantity <= 0) indicatorClass = "low";
-        else if (quantity < minThreshold) indicatorClass = "medium";
+    //   function getStockIndicatorHTML(quantity, minThreshold) {
+    //     const statusInfo = getStockStatus(quantity, minThreshold);
+    //     let indicatorClass = "high";
+    //     if (quantity <= 0) indicatorClass = "low";
+    //     else if (quantity < minThreshold) indicatorClass = "medium";
 
-        return `
-      <span class="stock-indicator ${indicatorClass}"></span>
-      ${quantity}
-    `;
-      }
+    //     return `
+    //   <span class="stock-indicator ${indicatorClass}"></span>
+    //   ${quantity}
+    // `;
+    //   }
 
       // Switch between grid and table view
       function switchView(view) {
@@ -1046,11 +1060,12 @@
           title.textContent = "Edit Product";
           const product = products[index];
           document.getElementById("productName").value = product.name;
+          document.getElementById("productSKU").value = product.sku || "";
           document.getElementById("productCategory").value = product.category;
           document.getElementById("productPrice").value = product.price;
-          document.getElementById("productQuantity").value = product.quantity;
-          document.getElementById("minStockThreshold").value =
-            product.minThreshold || 10;
+          // document.getElementById("productQuantity").value = product.quantity;
+          // document.getElementById("minStockThreshold").value =
+          //   product.minThreshold || 10;
           document.getElementById("productDescription").value =
             product.description || "";
         } else {
@@ -1070,31 +1085,33 @@
       // Clear modal form
       function clearModal() {
         document.getElementById("productName").value = "";
+        document.getElementById("productSKU").value = "";
         document.getElementById("productCategory").value = "";
         document.getElementById("productPrice").value = "";
-        document.getElementById("productQuantity").value = "";
-        document.getElementById("minStockThreshold").value = "10";
+        // document.getElementById("productQuantity").value = "";
+        // document.getElementById("minStockThreshold").value = "10";
         document.getElementById("productDescription").value = "";
       }
 
       // Save product (add or edit)
       async function saveProduct() {
         const name = document.getElementById("productName").value.trim();
+        const sku = document.getElementById("productSKU").value.trim();
         const category = document
           .getElementById("productCategory")
           .value.trim();
         const price = parseFloat(document.getElementById("productPrice").value);
-        const quantity = parseInt(
-          document.getElementById("productQuantity").value,
-        );
-        const minThreshold = parseInt(
-          document.getElementById("minStockThreshold").value,
-        );
+        // const quantity = parseInt(
+        //   document.getElementById("productQuantity").value,
+        // );
+        // const minThreshold = parseInt(
+        //   document.getElementById("minStockThreshold").value,
+        // );
         const description = document
           .getElementById("productDescription")
           .value.trim();
 
-        if (!name || !category || isNaN(price) || isNaN(quantity)) {
+        if (!name || !category || isNaN(price)) {
           showNotification(
             "Please fill in all required fields correctly!",
             "danger",
@@ -1102,18 +1119,19 @@
           return;
         }
 
-        if (price < 0 || quantity < 0) {
-          showNotification("Price and quantity cannot be negative!", "danger");
+        if (price < 0) {
+          showNotification("Price cannot be negative!", "danger");
           return;
         }
 
         const product = {
           // id: editIndex >= 0 ? products[editIndex]._id : Math.max(...products.map(p => p._id), 0) + 1,
           name,
+          sku,
           category,
           price,
-          quantity,
-          minThreshold: minThreshold || 10,
+          // quantity,
+          // minThreshold: minThreshold || 10,
           description,
         };
 
@@ -1129,8 +1147,12 @@
             },
           );
 
-          const updatedProduct = await res.json();
-          products[editIndex] = updatedProduct;
+          const data = await res.json();
+          if (!res.ok) {
+            showNotification(data.message || "Failed to update product", "danger");
+            return;
+          }
+          products[editIndex] = data.product || data;
           showNotification("Product updated successfully!", "success");
         } else {
           // ADD NEW PRODUCT TO BACKEND
@@ -1139,12 +1161,15 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(product),
           });
-          const createdProduct = await res.json();
-          products.push(createdProduct);
+          const data = await res.json();
+          if (!res.ok) {
+            showNotification(data.message || "Failed to add product", "danger");
+            return;
+          }
+          products.push(data.product || data);
           showNotification("Product added successfully!", "success");
         }
 
-        // renderProducts();
         fetchProducts();
         closeModal();
       }
@@ -1153,17 +1178,26 @@
       async function deleteProduct(index) {
         if (confirm("Are you sure you want to delete this product?")) {
           const productId = products[index]._id;
-          const res = await fetch(`http://localhost:5000/api/products/${productId}`, {
-            method: "DELETE",
-          });
+          const productName = products[index].name;
+          
+          try {
+            const res = await fetch(`http://localhost:5000/api/products/${productId}`, {
+              method: "DELETE",
+            });
 
-          if (res.ok) {
-            products.splice(index, 1);
-            // renderProducts();
-            fetchProducts();
-            showNotification("Product deleted successfully!", "success");
-          } else {
-            showNotification("Failed to delete product.", "danger");
+            if (res.ok) {
+              products.splice(index, 1);
+              fetchProducts();
+              showNotification(`"${productName}" deleted successfully!`, "success");
+            } else {
+              const errorData = await res.json().catch(() => ({}));
+              const errorMsg = errorData.message || `Failed to delete product (Status: ${res.status})`;
+              console.error("Delete error:", errorMsg);
+              showNotification(errorMsg, "danger");
+            }
+          } catch (err) {
+            console.error("Delete network error:", err);
+            showNotification("Network error while deleting product.", "danger");
           }
         }
       }
@@ -1175,6 +1209,43 @@
         renderPagination();
       }
 
+      function filterProductsBySearch(products, searchTerm) {
+        if (!searchTerm) return products;
+        return products.filter((product) => {
+          const normalizedSearch = searchTerm.toLowerCase();
+          return (
+            (product.name || "").toLowerCase().includes(normalizedSearch) ||
+            (product.category || "").toLowerCase().includes(normalizedSearch) ||
+            (product.sku || "").toLowerCase().includes(normalizedSearch) ||
+            (product.description || "").toLowerCase().includes(normalizedSearch)
+          );
+        });
+      }
+
+      function getStatusBadgeHTML(status) {
+        const normalizedStatus = status || 'Not Set';
+        let badgeClass = 'status-not-set';
+        let indicatorClass = 'not-set';
+
+        if (normalizedStatus === 'In Stock') {
+          badgeClass = 'status-in-stock';
+          indicatorClass = 'high';
+        } else if (normalizedStatus === 'Low Stock') {
+          badgeClass = 'status-low-stock';
+          indicatorClass = 'medium';
+        } else if (normalizedStatus === 'Out of Stock') {
+          badgeClass = 'status-out-of-stock';
+          indicatorClass = 'low';
+        }
+
+        return `
+          <span class="status-badge ${badgeClass}">
+            <span class="stock-indicator ${indicatorClass}"></span>
+            ${normalizedStatus}
+          </span>
+        `;
+      }
+
       // Render grid view
       function renderGridView() {
         const gridView = document.getElementById("gridView");
@@ -1183,15 +1254,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
-        let filteredProducts = products;
-
-        if (searchTerm) {
-          filteredProducts = products.filter(
-            (product) =>
-              product.name.toLowerCase().includes(searchTerm) ||
-              product.category.toLowerCase().includes(searchTerm),
-          );
-        }
+        const filteredProducts = filterProductsBySearch(products, searchTerm);
 
         if (filteredProducts.length === 0) {
           gridView.innerHTML = `
@@ -1207,33 +1270,24 @@
           const originalIndex = products.findIndex(
             (p) => p._id === product._id,
           );
-          const statusInfo = getStockStatus(
-            product.quantity,
-            product.minThreshold,
-          );
+          // const statusInfo = getStockStatus(
+          //   product.quantity,
+          //   product.minThreshold,
+          // );
 
           const productCard = document.createElement("div");
           productCard.className = "product-card";
           productCard.innerHTML = `
         <div class="product-image">
           <i class="fas fa-box"></i>
-          <div class="product-badge ${statusInfo.class}">${statusInfo.status}</div>
+          <div class="product-badge">${getStatusBadgeHTML(product.status)}</div>
         </div>
         <div class="product-info">
           <h3>${product.name}</h3>
+          <div style="font-size: 12px; color: var(--gray); margin-bottom: 10px;">${product.description?.substring(0, 60) || "No description"}...</div>
           <div class="product-meta">
             <span class="product-category">${product.category}</span>
-            <div class="product-price">$${product.price.toFixed(2)}</div>
-          </div>
-          <div class="product-stats">
-            <div class="stat">
-              <div class="stat-label">Quantity</div>
-              <div class="stat-value">${product.quantity}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Min Required</div>
-              <div class="stat-value">${product.minThreshold}</div>
-            </div>
+            <div class="product-price">Rs.${product.price.toFixed(2)}</div>
           </div>
           <div class="product-actions">
             <button class="btn btn-warning" onclick="openModal(${originalIndex})">
@@ -1258,15 +1312,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
-        let filteredProducts = products;
-
-        if (searchTerm) {
-          filteredProducts = products.filter(
-            (product) =>
-              product.name.toLowerCase().includes(searchTerm) ||
-              product.category.toLowerCase().includes(searchTerm),
-          );
-        }
+        const filteredProducts = filterProductsBySearch(products, searchTerm);
 
         if (filteredProducts.length === 0) {
           tbody.innerHTML = `
@@ -1292,10 +1338,10 @@
           const originalIndex = products.findIndex(
             (p) => p._id === product._id,
           );
-          const statusInfo = getStockStatus(
-            product.quantity,
-            product.minThreshold,
-          );
+          // const statusInfo = getStockStatus(
+          //   product.quantity,
+          //   product.minThreshold,
+          // );
 
           const row = document.createElement("tr");
           row.innerHTML = `
@@ -1303,15 +1349,11 @@
           <strong>${product.name}</strong>
           <div style="font-size: 12px; color: var(--gray); margin-top: 3px;">${product.description?.substring(0, 40) || "No description"}...</div>
         </td>
+        <td>${product.sku || "N/A"}</td>
         <td>${product.category}</td>
-        <td>
-          <span class="stock-indicator ${statusInfo.indicator}"></span>
-          ${product.quantity}
-          ${product.quantity < product.minThreshold ? `<span style="font-size: 11px; color: var(--warning); margin-left: 5px;">(Below ${product.minThreshold})</span>` : ""}
-        </td>
         <td><strong>Rs.${product.price.toFixed(2)}</strong></td>
         <td>
-          ${getStatusBadgeHTML(product.quantity, product.minThreshold)}
+          ${getStatusBadgeHTML(product.status)}
         </td>
         <td>
           <div class="action-buttons">
@@ -1340,15 +1382,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
-        let filteredProducts = products;
-
-        if (searchTerm) {
-          filteredProducts = products.filter(
-            (product) =>
-              product.name.toLowerCase().includes(searchTerm) ||
-              product.category.toLowerCase().includes(searchTerm),
-          );
-        }
+        const filteredProducts = filterProductsBySearch(products, searchTerm);
 
         const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -1459,10 +1493,8 @@
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {
-        // Update status for all products on load
-        products.forEach((product) => updateProductStatus(product));
-        // renderProducts();
         fetchProducts();
+        window.addEventListener("focus", fetchProducts);
         // Close modal when clicking outside
         window.onclick = function (event) {
           const modal = document.getElementById("productModal");

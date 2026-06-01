@@ -429,32 +429,58 @@
     .stock-status {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(108, 117, 125, 0.15);
+      color: var(--dark);
+      box-shadow: inset 0 0 0 1px transparent;
     }
 
     .status-in-stock {
-      background: rgba(76, 201, 240, 0.1);
       color: var(--success);
+      border-color: rgba(76, 201, 240, 0.25);
     }
 
     .status-low-stock {
-      background: rgba(255, 158, 0, 0.1);
       color: var(--warning);
+      border-color: rgba(255, 158, 0, 0.25);
     }
 
     .status-out-of-stock {
-      background: rgba(247, 37, 133, 0.1);
       color: var(--danger);
+      border-color: rgba(247, 37, 133, 0.25);
+    }
+
+    .status-not-set {
+      color: var(--gray);
+      border-color: rgba(108, 117, 125, 0.25);
     }
 
     .stock-indicator {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .status-in-stock .stock-indicator {
+      background: var(--success);
+    }
+
+    .status-low-stock .stock-indicator {
+      background: var(--warning);
+    }
+
+    .status-out-of-stock .stock-indicator {
+      background: var(--danger);
+    }
+
+    .status-not-set .stock-indicator {
+      background: var(--gray);
     }
 
     .stock-progress {
@@ -957,7 +983,7 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Total Stock Value</h3>
-          <div class="summary-value">$48,250</div>
+          <div id="totalValue" class="summary-value">$48,250</div>
           <div class="summary-change positive">
             <i class="fas fa-arrow-up"></i>
             12.5% from last month
@@ -973,7 +999,7 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Low Stock Items</h3>
-          <div class="summary-value">8</div>
+          <div id="lowStockCount" class="summary-value">8</div>
           <div class="summary-change negative">
             <i class="fas fa-arrow-up"></i>
             3 need urgent attention
@@ -989,7 +1015,7 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Out of Stock</h3>
-          <div class="summary-value">3</div>
+          <div id="outOfStockCount" class="summary-value">3</div>
           <div class="summary-change positive">
             <i class="fas fa-arrow-down"></i>
             2 restocked today
@@ -1005,7 +1031,7 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Recent Movements</h3>
-          <div class="summary-value">42</div>
+          <div id="recentMovements" class="summary-value">42</div>
           <div class="summary-change positive">
             <i class="fas fa-arrow-up"></i>
             18 today
@@ -1067,6 +1093,7 @@
           <option value="In Stock">In Stock</option>
           <option value="Low Stock">Low Stock</option>
           <option value="Out of Stock">Out of Stock</option>
+          <option value="Not Set">Not Set</option>
         </select>
       </div>
     </div>
@@ -1111,6 +1138,31 @@
         <label>Product</label>
         <input type="text" id="restockProductName" readonly style="background: #f8f9fa;">
       </div>
+
+      <div id="stockDetailsSection" style="display: none;">
+        <h4>Stock Details</h4>
+        <div class="form-group">
+          <label>Minimum Required</label>
+          <input type="number" id="minRequired" placeholder="Enter minimum required units" min="0">
+        </div>
+        <div class="form-group">
+          <label>Maximum Capacity</label>
+          <input type="number" id="maxCapacity" placeholder="Enter max capacity" min="0">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="status">
+            <option value="Not Set">Not Set</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unit Cost</label>
+          <input type="number" id="value" placeholder="Enter unit cost" min="0" step="0.01">
+        </div>
+      </div>
       
       <div class="form-group">
         <label>Quantity to Add</label>
@@ -1138,11 +1190,6 @@
       </div>
       
       <div class="form-row">
-        <div class="form-group">
-          <label>Cost per Unit ($)</label>
-          <input type="number" id="restockCost" placeholder="0.00" step="0.01">
-        </div>
-        
         <div class="form-group">
           <label>Supplier</label>
           <select id="restockSupplier">
@@ -1193,6 +1240,8 @@
   //   { id: 8, name: "Gaming Mouse", sku: "GMSE-RGB-BLK", category: "Electronics", currentStock: 3, minRequired: 12, maxCapacity: 60, status: "Low Stock", lastUpdated: "2024-01-15", value: 899.97 }
   // ];
   let stockData = [];
+  let stockTrendChart = null;
+  let stockCategoryChart = null;
 
   async function fetchStocks() {
         try {
@@ -1208,7 +1257,8 @@
           const data = await res.json();
           stockData = data;
           renderStockTable();
-          // updateStats();
+          initCharts();
+          updateStats();
         } catch (err) {
           console.error(err);
           showNotification("Network error", "danger");
@@ -1218,30 +1268,102 @@
   let currentRestockProduct = null;
   let currentQuantity = 0;
 
-  // Initialize Charts
+  // Initialize Charts with Stock Data
   function initCharts() {
+    const categoryStocks = {};
+    const categoryColors = {
+      'Electronics': '#4361ee',
+      'Clothing': '#7209b7',
+      'Home': '#4cc9f0',
+      'Books': '#f72585',
+      'Other': '#ff9e00'
+    };
+
+    stockData.forEach(item => {
+      const cat = item.category || 'Other';
+      categoryStocks[cat] = (categoryStocks[cat] || 0) + (item.currentStock || 0);
+    });
+
+    const categories = Object.keys(categoryStocks);
+    const categoryData = Object.values(categoryStocks);
+    const categoryBackgrounds = categories.map(cat => categoryColors[cat] || '#ff9e00');
+
+    // Destroy existing charts before recreating them
+    if (stockTrendChart) {
+      stockTrendChart.destroy();
+      stockTrendChart = null;
+    }
+    if (stockCategoryChart) {
+      stockCategoryChart.destroy();
+      stockCategoryChart = null;
+    }
+
     const trendCtx = document.getElementById('stockTrendChart').getContext('2d');
-    new Chart(trendCtx, {
+    stockTrendChart = new Chart(trendCtx, {
       type: 'line',
       data: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        labels: categories,
         datasets: [
-          { label: 'Electronics', data: [45, 52, 48, 55], borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', borderWidth: 3, fill: true, tension: 0.4 },
-          { label: 'Clothing', data: [35, 38, 32, 40], borderColor: '#7209b7', backgroundColor: 'rgba(114, 9, 183, 0.1)', borderWidth: 3, fill: true, tension: 0.4 },
-          { label: 'Home', data: [25, 28, 30, 32], borderColor: '#4cc9f0', backgroundColor: 'rgba(76, 201, 240, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }
+          {
+            label: 'Current Stock Levels',
+            data: categoryData,
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#4361ee',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
+          }
         ]
       },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value + ' units'
+            }
+          }
+        }
+      }
     });
 
     const categoryCtx = document.getElementById('stockCategoryChart').getContext('2d');
-    new Chart(categoryCtx, {
+    stockCategoryChart = new Chart(categoryCtx, {
       type: 'doughnut',
       data: {
-        labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
-        datasets: [{ data: [48, 25, 15, 8, 4], backgroundColor: ['#4361ee', '#7209b7', '#4cc9f0', '#f72585', '#ff9e00'], borderWidth: 0, hoverOffset: 15 }]
+        labels: categories,
+        datasets: [{
+          data: categoryData,
+          backgroundColor: categoryBackgrounds,
+          borderWidth: 0,
+          hoverOffset: 15
+        }]
       },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                return `${label}: ${value} units (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
     });
   }
 
@@ -1251,25 +1373,44 @@
     tbody.innerHTML = '';
 
     stockData.forEach(item => {
-      const stockPercentage = (item.currentStock / item.maxCapacity) * 100;
+      const maxCapacity = item.maxCapacity || Math.max(item.currentStock, 1);
+      const stockPercentage = Math.min(100, (item.currentStock / maxCapacity) * 100);
       let progressClass = 'high';
       let statusClass = 'status-in-stock';
-      
-      if (stockPercentage <= 10) { progressClass = 'low'; statusClass = 'status-out-of-stock'; }
-      else if (stockPercentage <= 30) { progressClass = 'medium'; statusClass = 'status-low-stock'; }
-      
-      if (item.currentStock === 0) statusClass = 'status-out-of-stock';
+
+      if (item.status === 'Not Set') {
+        statusClass = 'status-not-set';
+      } else if (item.status === 'Out of Stock') {
+        statusClass = 'status-out-of-stock';
+      } else if (item.status === 'Low Stock') {
+        statusClass = 'status-low-stock';
+      } else if (item.status === 'In Stock') {
+        statusClass = 'status-in-stock';
+      }
+
+      if (item.currentStock === 0) {
+        progressClass = 'low';
+      } else if (stockPercentage <= 10) {
+        progressClass = 'low';
+      } else if (stockPercentage <= 30) {
+        progressClass = 'medium';
+      }
+
+      const lastUpdated = item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString() : 'Not Set';
+      const minRequired = item.minRequired != null ? item.minRequired : 'Not Set';
+      const actionTitle = item.stockExists ? 'Restock' : 'Add Stock Details';
+      const actionIcon = item.stockExists ? 'truck-loading' : 'plus-circle';
 
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><strong>${item.name}</strong><div style="font-size: 12px; color: var(--gray);">SKU: ${item.sku}</div></td>
         <td>${item.sku}</td>
-        <td>${item.category}</td>
+        <td>${item.category || 'Other'}</td>
         <td><div>${item.currentStock} units</div><div class="stock-progress"><div class="progress-bar ${progressClass}" style="width: ${stockPercentage}%"></div></div></td>
-        <td>${item.minRequired}</td>
+        <td>${minRequired}</td>
         <td><span class="stock-status ${statusClass}"><span class="stock-indicator"></span>${item.status}</span></td>
-        <td>${item.lastUpdated}</td>
-        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal('${item._id}')" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
+        <td>${lastUpdated}</td>
+        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal('${item._id}')" title="${actionTitle}"><i class="fas fa-${actionIcon}"></i></button></div></td>
       `;
       tbody.appendChild(row);
     });
@@ -1286,15 +1427,26 @@
     document.getElementById('quantityValue').textContent = '0';
     document.getElementById('quantitySlider').value = '0';
     document.getElementById('newStockPreview').textContent = `${currentRestockProduct.currentStock} units`;
-    document.getElementById('restockCost').value = '';
+    document.getElementById('value').value = currentRestockProduct.value || '';
     document.getElementById('restockSupplier').value = '';
     document.getElementById('restockDate').value = '';
     document.getElementById('restockNotes').value = '';
-    
+    document.getElementById('minRequired').value = currentRestockProduct.minRequired || '';
+    document.getElementById('maxCapacity').value = currentRestockProduct.maxCapacity || '';
+    document.getElementById('status').value = currentRestockProduct.status || 'Not Set';
+
+    const detailsSection = document.getElementById('stockDetailsSection');
+    detailsSection.style.display = currentRestockProduct.stockExists ? 'none' : 'block';
+
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('restockDate').value = today;
     
+    const confirmButton = document.querySelector('.modal-footer .btn-primary');
+    if (confirmButton) {
+      confirmButton.innerHTML = currentRestockProduct.stockExists ? '<i class="fas fa-check"></i> Confirm Restock' : '<i class="fas fa-check"></i> Save Stock';
+    }
+
     document.getElementById('restockModal').style.display = 'flex';
   }
 
@@ -1336,61 +1488,115 @@
       showNotification('No product selected!', 'danger');
       return;
     }
-    
-    if (currentQuantity <= 0) {
-      showNotification('Please select a quantity to restock!', 'warning');
-      return;
-    }
-    
-    const cost = parseFloat(document.getElementById('restockCost').value);
+
+    const value = parseFloat(document.getElementById('value').value);
     const supplier = document.getElementById('restockSupplier').value;
     const deliveryDate = document.getElementById('restockDate').value;
     const notes = document.getElementById('restockNotes').value;
-    
-    // Calculate new stock and status
+    const minRequired = parseInt(document.getElementById('minRequired').value, 10) || 0;
+    const maxCapacity = parseInt(document.getElementById('maxCapacity').value, 10) || 0;
+    const statusInput = document.getElementById('status').value;
+
     const newStock = currentRestockProduct.currentStock + currentQuantity;
-    let newStatus = 'In Stock';
-    if (newStock <= 0) {
-      newStatus = 'Out of Stock';
-    } else if (newStock < currentRestockProduct.minRequired) {
-      newStatus = 'Low Stock';
+    let newStatus = statusInput;
+    if (!statusInput || statusInput === 'Not Set') {
+      if (newStock <= 0) {
+        newStatus = 'Out of Stock';
+      } else if (newStock < minRequired) {
+        newStatus = 'Low Stock';
+      } else {
+        newStatus = 'In Stock';
+      }
     }
-    
-    // Calculate new value
-    const newValue = cost > 0 ? newStock * cost : currentRestockProduct.value;
-    
-    // Prepare update data
-    const updateData = {
+
+    const stockPayload = {
+      name: currentRestockProduct.name,
+      sku: currentRestockProduct.sku,
+      category: currentRestockProduct.category,
       currentStock: newStock,
+      minRequired,
+      maxCapacity,
       status: newStatus,
-      value: newValue,
-      lastUpdated: new Date()
+      value: value > 0 ? value : currentRestockProduct.value || 0,
     };
-    
+
     try {
-      // Send update to backend
-      const res = await fetch(`http://localhost:5000/api/stocks/${currentRestockProduct._id}`, {
-        method: 'PUT',
+      const url = currentRestockProduct.stockExists
+        ? `http://localhost:5000/api/stocks/${currentRestockProduct._stockId}`
+        : 'http://localhost:5000/api/stocks';
+      const method = currentRestockProduct.stockExists ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(stockPayload),
       });
-      
+
       if (!res.ok) {
         const error = await res.json();
-        showNotification(`Failed to restock: ${error.message || 'Unknown error'}`, 'danger');
+        showNotification(`Failed to save stock details: ${error.message || 'Unknown error'}`, 'danger');
         return;
       }
-      
-      // Show success message with details
+
+      const actionText = currentRestockProduct.stockExists ? 'restocked' : 'stock details saved for';
       const totalCost = cost > 0 ? ` Total cost: $${(currentQuantity * cost).toLocaleString()}.` : '';
-      showNotification(`Successfully restocked ${currentQuantity} units of ${currentRestockProduct.name}!${totalCost}`, 'success');
-      
+      showNotification(`Successfully ${actionText} ${currentRestockProduct.name}!${totalCost}`, 'success');
+
       closeModal();
       fetchStocks();
     } catch (err) {
-      console.error('Error restocking:', err);
-      showNotification('Network error while restocking', 'danger');
+      console.error('Error saving stock details:', err);
+      showNotification('Network error while saving stock details', 'danger');
     }
+  }
+
+  // Update summary cards and low-stock alerts
+  function updateStats() {
+    // totals
+    const totalValueEl = document.getElementById('totalValue');
+    const lowCountEl = document.getElementById('lowStockCount');
+    const outCountEl = document.getElementById('outOfStockCount');
+    const recentEl = document.getElementById('recentMovements');
+    const alertList = document.getElementById('alertList');
+
+    let totalValue = 0;
+    let lowCount = 0;
+    let outCount = 0;
+    let recentCount = 0;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    alertList.innerHTML = '';
+
+    stockData.forEach(item => {
+      const qty = Number(item.currentStock) || 0;
+      const unit = Number(item.value) || 0;
+      totalValue += qty * unit;
+
+      const minReq = Number(item.minRequired) || 0;
+      const isLow = (minReq > 0 && qty < minReq) || (item.status === 'Low Stock');
+      if (isLow) {
+        lowCount++;
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${item.name}</strong> — ${qty} units (min ${minReq})`;
+        alertList.appendChild(li);
+      }
+
+      if (qty === 0 || item.status === 'Out of Stock') {
+        outCount++;
+      }
+
+      if (item.lastUpdated) {
+        const lu = new Date(item.lastUpdated);
+        if (lu >= sevenDaysAgo) recentCount++;
+      }
+    });
+
+    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toLocaleString()}`;
+    if (lowCountEl) lowCountEl.textContent = String(lowCount);
+    if (outCountEl) outCountEl.textContent = String(outCount);
+    if (recentEl) recentEl.textContent = String(recentCount);
   }
 
   // Close Modal
@@ -1428,7 +1634,6 @@
 
   // Initialize
   document.addEventListener('DOMContentLoaded', function() {
-    initCharts();
     fetchStocks();
     
     // Filter functionality
@@ -1463,8 +1668,19 @@
       let progressClass = 'high';
       let statusClass = 'status-in-stock';
       
-      if (stockPercentage <= 10) { progressClass = 'low'; statusClass = 'status-out-of-stock'; }
-      else if (stockPercentage <= 30) { progressClass = 'medium'; statusClass = 'status-low-stock'; }
+      if (item.status === 'Not Set') {
+        statusClass = 'status-not-set';
+      } else if (item.status === 'Out of Stock') {
+        statusClass = 'status-out-of-stock';
+      } else if (item.status === 'Low Stock') {
+        statusClass = 'status-low-stock';
+      } else if (item.status === 'In Stock') {
+        statusClass = 'status-in-stock';
+      }
+
+      if (item.currentStock === 0) { progressClass = 'low'; }
+      else if (stockPercentage <= 10) { progressClass = 'low'; }
+      else if (stockPercentage <= 30) { progressClass = 'medium'; }
       
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -1475,7 +1691,7 @@
         <td>${item.minRequired}</td>
         <td><span class="stock-status ${statusClass}"><span class="stock-indicator"></span>${item.status}</span></td>
         <td>${item.lastUpdated}</td>
-        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal(${item.id})" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
+        <td><div class="action-buttons"><button class="btn-restock" onclick="openRestockModal('${item._id}')" title="Restock"><i class="fas fa-truck-loading"></i></button></div></td>
       `;
       tbody.appendChild(row);
     });
