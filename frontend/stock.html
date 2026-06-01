@@ -983,10 +983,10 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Total Stock Value</h3>
-          <div id="totalValue" class="summary-value">$48,250</div>
-          <div class="summary-change positive">
+          <div id="totalValue" class="summary-value">$0</div>
+          <div class="summary-change positive" id="totalValueChange">
             <i class="fas fa-arrow-up"></i>
-            12.5% from last month
+            <span id="totalValueChangeText">Loading...</span>
           </div>
         </div>
         <div class="summary-icon">
@@ -999,10 +999,10 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Low Stock Items</h3>
-          <div id="lowStockCount" class="summary-value">8</div>
-          <div class="summary-change negative">
+          <div id="lowStockCount" class="summary-value">0</div>
+          <div class="summary-change negative" id="lowStockChange">
             <i class="fas fa-arrow-up"></i>
-            3 need urgent attention
+            <span id="lowStockChangeText">0 need urgent attention</span>
           </div>
         </div>
         <div class="summary-icon">
@@ -1015,10 +1015,10 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Out of Stock</h3>
-          <div id="outOfStockCount" class="summary-value">3</div>
-          <div class="summary-change positive">
+          <div id="outOfStockCount" class="summary-value">0</div>
+          <div class="summary-change positive" id="outOfStockChange">
             <i class="fas fa-arrow-down"></i>
-            2 restocked today
+            <span id="outOfStockChangeText">0 restocked today</span>
           </div>
         </div>
         <div class="summary-icon">
@@ -1031,10 +1031,10 @@
       <div class="summary-header">
         <div class="summary-content">
           <h3>Recent Movements</h3>
-          <div id="recentMovements" class="summary-value">42</div>
-          <div class="summary-change positive">
+          <div id="recentMovements" class="summary-value">0</div>
+          <div class="summary-change positive" id="recentChange">
             <i class="fas fa-arrow-up"></i>
-            18 today
+            <span id="recentChangeText">0 today</span>
           </div>
         </div>
         <div class="summary-icon">
@@ -1255,7 +1255,14 @@
           }
 
           const data = await res.json();
+          console.log('Fetched stock data:', data);
           stockData = data;
+          
+          // Log stock items for debugging
+          data.forEach(item => {
+            console.log(`${item.name}: qty=${item.currentStock}, minReq=${item.minRequired}, status=${item.status}`);
+          });
+          
           renderStockTable();
           initCharts();
           updateStats();
@@ -1435,8 +1442,9 @@
     document.getElementById('maxCapacity').value = currentRestockProduct.maxCapacity || '';
     document.getElementById('status').value = currentRestockProduct.status || 'Not Set';
 
+    // Always show stock details section - status, minRequired, maxCapacity are important for both create and update
     const detailsSection = document.getElementById('stockDetailsSection');
-    detailsSection.style.display = currentRestockProduct.stockExists ? 'none' : 'block';
+    detailsSection.style.display = 'block';
 
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
@@ -1446,6 +1454,9 @@
     if (confirmButton) {
       confirmButton.innerHTML = currentRestockProduct.stockExists ? '<i class="fas fa-check"></i> Confirm Restock' : '<i class="fas fa-check"></i> Save Stock';
     }
+
+    // Auto-calculate status based on initial values
+    updateAutoStatus();
 
     document.getElementById('restockModal').style.display = 'flex';
   }
@@ -1458,6 +1469,30 @@
     setQuantity(newQuantity);
   }
 
+  // Automatically calculate status based on quantity and minimum required
+  function updateAutoStatus() {
+    const newStock = currentRestockProduct.currentStock + currentQuantity;
+    const minRequired = parseInt(document.getElementById('minRequired').value, 10) || 0;
+    let autoStatus = 'Not Set';
+
+    if (newStock === 0) {
+      autoStatus = 'Out of Stock';
+    } else if (minRequired > 0 && newStock < minRequired) {
+      autoStatus = 'Low Stock';
+    } else if (newStock > 0) {
+      autoStatus = 'In Stock';
+    }
+
+    document.getElementById('status').value = autoStatus;
+    
+    // Show visual feedback that status was auto-set
+    const statusEl = document.getElementById('status');
+    statusEl.style.backgroundColor = '#e8f5e9';
+    setTimeout(() => { statusEl.style.backgroundColor = ''; }, 300);
+    
+    console.log(`Auto Status: ${newStock} units → "${autoStatus}" (min required: ${minRequired})`);
+  }
+
   // Set specific quantity
   function setQuantity(quantity) {
     currentQuantity = quantity;
@@ -1466,6 +1501,9 @@
     
     const newStock = currentRestockProduct.currentStock + currentQuantity;
     document.getElementById('newStockPreview').textContent = `${newStock} units`;
+    
+    // Automatically update status based on new quantity
+    updateAutoStatus();
     
     // Add visual feedback
     const previewDiv = document.querySelector('.new-stock-preview');
@@ -1480,6 +1518,9 @@
     
     const newStock = currentRestockProduct.currentStock + currentQuantity;
     document.getElementById('newStockPreview').textContent = `${newStock} units`;
+    
+    // Automatically update status based on new quantity
+    updateAutoStatus();
   }
 
   // Process Restock
@@ -1539,11 +1580,10 @@
       }
 
       const actionText = currentRestockProduct.stockExists ? 'restocked' : 'stock details saved for';
-      const totalCost = cost > 0 ? ` Total cost: $${(currentQuantity * cost).toLocaleString()}.` : '';
-      showNotification(`Successfully ${actionText} ${currentRestockProduct.name}!${totalCost}`, 'success');
+      showNotification(`Successfully ${actionText} ${currentRestockProduct.name}!`, 'success');
 
       closeModal();
-      fetchStocks();
+      await fetchStocks(); // Wait for data to refresh before continuing
     } catch (err) {
       console.error('Error saving stock details:', err);
       showNotification('Network error while saving stock details', 'danger');
@@ -1552,51 +1592,119 @@
 
   // Update summary cards and low-stock alerts
   function updateStats() {
-    // totals
+    // Get all elements
     const totalValueEl = document.getElementById('totalValue');
     const lowCountEl = document.getElementById('lowStockCount');
     const outCountEl = document.getElementById('outOfStockCount');
     const recentEl = document.getElementById('recentMovements');
     const alertList = document.getElementById('alertList');
+    
+    // Summary change elements
+    const lowStockChangeText = document.getElementById('lowStockChangeText');
+    const outOfStockChangeText = document.getElementById('outOfStockChangeText');
+    const recentChangeText = document.getElementById('recentChangeText');
 
+    // Initialize counters
     let totalValue = 0;
     let lowCount = 0;
     let outCount = 0;
     let recentCount = 0;
+    let todayCount = 0;
+    let urgentCount = 0;
+    let restockedToday = 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     alertList.innerHTML = '';
 
-    stockData.forEach(item => {
+    console.log('=== UPDATING STATS ===');
+    console.log('Total items in stockData:', stockData.length);
+
+    stockData.forEach((item, index) => {
       const qty = Number(item.currentStock) || 0;
+      const minReq = Number(item.minRequired) || 0;
       const unit = Number(item.value) || 0;
       totalValue += qty * unit;
 
-      const minReq = Number(item.minRequired) || 0;
-      const isLow = (minReq > 0 && qty < minReq) || (item.status === 'Low Stock');
+      console.log(`[${index}] ${item.name}: qty=${qty}, minReq=${minReq}, status=${item.status}`);
+      
+      // Check if Out of Stock first (qty = 0)
+      if (qty === 0) {
+        console.log(`  → OUT OF STOCK`);
+        outCount++;
+        return; // Skip low stock check for out of stock items
+      }
+
+      // Low Stock: quantity is greater than 0 but less than minimum required
+      // Only count if minRequired is set and greater than 0
+      const isLow = minReq > 0 && qty < minReq;
+      
       if (isLow) {
+        console.log(`  → LOW STOCK (${qty} < ${minReq})`);
         lowCount++;
+        urgentCount++;
+        
         const li = document.createElement('li');
         li.innerHTML = `<strong>${item.name}</strong> — ${qty} units (min ${minReq})`;
         alertList.appendChild(li);
+      } else {
+        console.log(`  → IN STOCK (${qty} >= ${minReq})`);
       }
 
-      if (qty === 0 || item.status === 'Out of Stock') {
-        outCount++;
-      }
-
+      // Count items updated in last 7 days
       if (item.lastUpdated) {
         const lu = new Date(item.lastUpdated);
         if (lu >= sevenDaysAgo) recentCount++;
+        
+        // Count items updated today
+        const luCopy = new Date(item.lastUpdated);
+        luCopy.setHours(0, 0, 0, 0);
+        if (luCopy.getTime() === today.getTime()) {
+          todayCount++;
+        }
+      }
+      
+      // Count items restocked today (currentStock > 0 and updated today)
+      if (qty > 0 && item.lastUpdated) {
+        const lu = new Date(item.lastUpdated);
+        lu.setHours(0, 0, 0, 0);
+        if (lu.getTime() === today.getTime()) {
+          restockedToday++;
+        }
       }
     });
 
-    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toLocaleString()}`;
+    console.log(`=== STATS CALCULATED ===`);
+    console.log(`Low Stock Count: ${lowCount}`);
+    console.log(`Out of Stock Count: ${outCount}`);
+    console.log(`Urgent Count: ${urgentCount}`);
+    console.log(`Total Value: Rs.${totalValue}`);
+    console.log(`Recent (7 days): ${recentCount}`);
+    console.log(`Today: ${todayCount}`);
+    console.log(`Restocked Today: ${restockedToday}`);
+
+    // Update main values
+    if (totalValueEl) totalValueEl.textContent = `Rs.${totalValue.toLocaleString()}`;
     if (lowCountEl) lowCountEl.textContent = String(lowCount);
     if (outCountEl) outCountEl.textContent = String(outCount);
     if (recentEl) recentEl.textContent = String(recentCount);
+
+    // Update change texts
+    if (lowStockChangeText) {
+      lowStockChangeText.textContent = `${urgentCount} need urgent attention`;
+    }
+    
+    if (outOfStockChangeText) {
+      outOfStockChangeText.textContent = `${restockedToday} restocked today`;
+    }
+    
+    if (recentChangeText) {
+      recentChangeText.textContent = `${todayCount} today`;
+    }
   }
 
   // Close Modal
@@ -1636,10 +1744,19 @@
   document.addEventListener('DOMContentLoaded', function() {
     fetchStocks();
     
+    // Refresh stats when user returns to the page
+    window.addEventListener('focus', function() {
+      fetchStocks();
+    });
+    
     // Filter functionality
     document.getElementById('categoryFilter').addEventListener('change', filterStock);
     document.getElementById('statusFilter').addEventListener('change', filterStock);
     document.getElementById('searchInput').addEventListener('input', filterStock);
+    
+    // Auto-update status when minRequired or maxCapacity changes
+    document.getElementById('minRequired').addEventListener('change', updateAutoStatus);
+    document.getElementById('maxCapacity').addEventListener('change', updateAutoStatus);
     
     // Close modal on outside click
     window.onclick = function(event) {
