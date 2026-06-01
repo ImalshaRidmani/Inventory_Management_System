@@ -39,11 +39,10 @@ exports.createStock = async (req, res) => {
       });
     }
 
-    const stockStatus = status && status !== "Not Set"
-      ? status
-      : deriveStatus(currentStock, minRequired);
+    // Always auto-calculate status based on quantity - never trust passed status
+    const stockStatus = deriveStatus(currentStock, minRequired);
 
-    console.log(`[Stock Create] SKU: ${normalizedSku}, Status: ${stockStatus}, Stock: ${currentStock}`);
+    console.log(`[Stock Create] SKU: ${normalizedSku}, Status: ${stockStatus}, Stock: ${currentStock} (Auto-calculated from qty=${currentStock}, minReq=${minRequired})`);
 
     const stock = new Stock({
       name,
@@ -233,11 +232,10 @@ exports.updateStock = async (req, res) => {
       });
     }
 
-    const stockStatus = status && status !== "Not Set"
-      ? status
-      : deriveStatus(currentStock, minRequired);
+    // Always auto-calculate status based on quantity - never trust passed status
+    const stockStatus = deriveStatus(currentStock, minRequired);
 
-    console.log(`[Stock Update] ID: ${stockId}, SKU: ${normalizedSku}, Status: ${stockStatus}, Stock: ${currentStock}`);
+    console.log(`[Stock Update] ID: ${stockId}, SKU: ${normalizedSku}, Status: ${stockStatus}, Stock: ${currentStock} (Auto-calculated from qty=${currentStock}, minReq=${minRequired})`);
 
     const updatedStock = await Stock.findByIdAndUpdate(
       stockId,

@@ -105,34 +105,45 @@ exports.deleteProduct = async (req, res) => {
       });
     }
 
-    console.log(`[Delete Product] Deleting product: ${product.name} (SKU: ${product.sku})`);
+    console.log(`[Delete Product] Checking if product can be deleted: ${product.name} (SKU: ${product.sku})`);
 
-    // Delete associated stock record by SKU (cascading delete)
+    // Check if associated stock record exists (prevent deletion if stock exists)
     if (product.sku) {
       const normalizedSku = product.sku.trim().toUpperCase();
+      
       try {
-        const deletedStock = await Stock.findOneAndDelete(
-          { sku: normalizedSku },
-          { new: true }
-        );
+        // Try exact match first
+        let existingStock = await Stock.findOne({ sku: normalizedSku });
         
-        if (deletedStock) {
-          console.log(`[Delete Product] ✅ Deleted associated stock - ID: ${deletedStock._id}, SKU: ${deletedStock.sku}`);
-        } else {
-          console.log(`[Delete Product] ℹ️ No associated stock found for SKU: ${normalizedSku}`);
+        // If exact match fails, try case-insensitive regex match
+        if (!existingStock) {
+          const skuQuery = { sku: { $regex: `^${normalizedSku.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } };
+          existingStock = await Stock.findOne(skuQuery);
+        }
+        
+        if (existingStock) {
+          console.log(`[Delete Product] ❌ Cannot delete - Stock record exists for SKU: ${normalizedSku}, Stock ID: ${existingStock._id}`);
+          return res.status(400).json({
+            message: `Cannot delete product "${product.name}" because stock records exist for it. Delete the stock first.`,
+            error: "STOCK_EXISTS",
+          });
         }
       } catch (stockErr) {
-        console.error(`[Delete Product] ⚠️ Error deleting stock for SKU ${normalizedSku}:`, stockErr.message);
-        // Continue with product deletion even if stock deletion fails
+        console.error(`[Delete Product] ⚠️ Error checking stock for SKU ${normalizedSku}:`, stockErr.message);
+        return res.status(500).json({
+          message: "Error checking associated stock",
+          error: stockErr.message,
+        });
       }
     }
 
-    // Delete the product
+    // Delete the product (only if no stock exists)
     const deletedProduct = await Product.findByIdAndDelete(productId);
 
     if (deletedProduct) {
+      console.log(`[Delete Product] ✅ Product deleted successfully - ID: ${productId}, Name: ${product.name}`);
       res.status(200).json({
-        message: "Product and associated stock deleted successfully",
+        message: "Product deleted successfully",
       });
     } else {
       res.status(404).json({
