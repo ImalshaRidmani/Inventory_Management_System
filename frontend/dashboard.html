@@ -567,9 +567,13 @@
         <input type="text" placeholder="Search inventory...">
       </div>
       
+      <button onclick="refreshDashboard()" style="background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+      
       <div class="notification">
         <i class="fas fa-bell"></i>
-        <span class="notification-badge">3</span>
+        <span class="notification-badge" id="lowStockBadge">3</span>
       </div>
       
       <!-- <div class="user-mobile">
@@ -584,10 +588,10 @@
         <i class="fas fa-boxes"></i>
       </div>
       <h3>Total Products</h3>
-      <div class="card-value">156</div>
+      <div class="card-value" id="totalProducts">0</div>
       <div class="card-change positive">
-        <i class="fas fa-arrow-up"></i>
-        12% from last month
+        <i class="fas fa-archive"></i>
+        All items in stock
       </div>
     </div>
     
@@ -596,22 +600,22 @@
         <i class="fas fa-exclamation-triangle"></i>
       </div>
       <h3>Low Stock</h3>
-      <div class="card-value">8</div>
-      <div class="card-change negative">
+      <div class="card-value" id="lowStockCount">0</div>
+      <div class="card-change negative" id="lowStockChange">
         <i class="fas fa-arrow-down"></i>
-        3 need urgent restock
+        Need urgent attention
       </div>
     </div>
     
     <div class="card">
       <div class="card-icon">
-        <i class="fas fa-users"></i>
+        <i class="fas fa-ban"></i>
       </div>
-      <h3>Active Users</h3>
-      <div class="card-value">12</div>
-      <div class="card-change positive">
-        <i class="fas fa-arrow-up"></i>
-        2 new this week
+      <h3>Out of Stock</h3>
+      <div class="card-value" id="outOfStockCount">0</div>
+      <div class="card-change negative" id="outOfStockChange">
+        <i class="fas fa-exclamation-circle"></i>
+        Unable to sell
       </div>
     </div>
     
@@ -619,11 +623,11 @@
       <div class="card-icon">
         <i class="fas fa-dollar-sign"></i>
       </div>
-      <h3>Today's Sales</h3>
-      <div class="card-value">$3,842</div>
-      <div class="card-change positive">
-        <i class="fas fa-arrow-up"></i>
-        24% from yesterday
+      <h3>Inventory Value</h3>
+      <div class="card-value" id="inventoryValue">Rs.0</div>
+      <div class="card-change positive" id="inventoryChange">
+        <i class="fas fa-chart-line"></i>
+        Total asset value
       </div>
     </div>
   </div>
@@ -654,129 +658,317 @@
   <div class="activity">
     <div class="activity-header">
       <h3>Recent Activity</h3>
-      <a href="#" style="color: var(--primary); font-size: 14px;">View All</a>
+      <a href="stock.html" style="color: var(--primary); font-size: 14px;">View All Stock</a>
     </div>
     
-    <ul class="activity-list">
-      <li class="activity-item">
-        <div class="activity-icon add">
-          <i class="fas fa-plus"></i>
-        </div>
-        <div class="activity-details">
-          <h4>New product added</h4>
-          <p>iPhone 13 Pro Max - 256GB</p>
-        </div>
-        <div class="activity-time">10 min ago</div>
-      </li>
-      
-      <li class="activity-item">
-        <div class="activity-icon update">
-          <i class="fas fa-edit"></i>
-        </div>
-        <div class="activity-details">
-          <h4>Stock updated</h4>
-          <p>Samsung Galaxy S22 - Quantity increased</p>
-        </div>
-        <div class="activity-time">45 min ago</div>
-      </li>
-      
-      <li class="activity-item">
-        <div class="activity-icon delete">
-          <i class="fas fa-trash"></i>
-        </div>
-        <div class="activity-details">
-          <h4>Product removed</h4>
-          <p>Old warehouse items cleared</p>
-        </div>
-        <div class="activity-time">2 hours ago</div>
-      </li>
-      
-      <li class="activity-item">
-        <div class="activity-icon add">
-          <i class="fas fa-user-plus"></i>
-        </div>
-        <div class="activity-details">
-          <h4>New user registered</h4>
-          <p>John Doe joined as Manager</p>
-        </div>
-        <div class="activity-time">5 hours ago</div>
+    <ul class="activity-list" id="activityList">
+      <li class="activity-item" style="text-align: center; color: var(--gray);">
+        <i class="fas fa-spinner fa-spin"></i> Loading activity...
       </li>
     </ul>
   </div>
 </div>
 
 <script>
-  // Sales Chart
-  const salesCtx = document.getElementById('salesChart').getContext('2d');
-  const salesChart = new Chart(salesCtx, {
-    type: 'line',
-    data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [{
-        label: 'Sales ($)',
-        data: [3200, 2800, 3500, 4200, 3842, 4100, 3900],
-        borderColor: '#4361ee',
-        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        }
+  let stockData = [];
+  let salesChart = null;
+  let categoryChart = null;
+
+  // Fetch live stock data
+  async function fetchDashboardData() {
+    try {
+      console.log('📊 Fetching dashboard data...');
+      const res = await fetch('http://localhost:5000/api/stocks');
+      
+      if (!res.ok) {
+        console.error('Failed to fetch stock data');
+        return;
+      }
+
+      const data = await res.json();
+      stockData = data;
+      console.log('✅ Stock data received:', data);
+      
+      // Update dashboard with live data
+      updateDashboardCards();
+      updateStockCharts();
+      updateActivity();
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    }
+  }
+
+  // Update card values with live data
+  function updateDashboardCards() {
+    // Total products
+    const totalProducts = stockData.length;
+    document.getElementById('totalProducts').textContent = totalProducts;
+
+    // Calculate statistics
+    let lowCount = 0;
+    let outCount = 0;
+    let totalValue = 0;
+
+    stockData.forEach(item => {
+      const qty = Number(item.currentStock) || 0;
+      const minReq = Number(item.minRequired) || 0;
+      const value = Number(item.value) || 0;
+
+      // Count inventory value
+      totalValue += qty * value;
+
+      // Out of Stock
+      if (qty === 0) {
+        outCount++;
+        return;
+      }
+
+      // Low Stock
+      if (minReq > 0 && qty < minReq) {
+        lowCount++;
+      }
+    });
+
+    // Update card values
+    document.getElementById('lowStockCount').textContent = lowCount;
+    document.getElementById('outOfStockCount').textContent = outCount;
+    document.getElementById('inventoryValue').textContent = `Rs.${totalValue.toLocaleString()}`;
+
+    // Update change texts
+    document.getElementById('lowStockChange').innerHTML = `
+      <i class="fas fa-exclamation"></i>
+      ${lowCount} items need urgent attention
+    `;
+
+    document.getElementById('outOfStockChange').innerHTML = `
+      <i class="fas fa-times"></i>
+      ${outCount} items unavailable
+    `;
+
+    // Update badge
+    document.getElementById('lowStockBadge').textContent = lowCount;
+
+    console.log(`📊 Dashboard Updated - Total: ${totalProducts}, Low: ${lowCount}, Out: ${outCount}, Value: Rs.${totalValue}`);
+  }
+
+  // Update charts with live stock data
+  function updateStockCharts() {
+    // Group data by category
+    const categoryStocks = {};
+    const categoryValues = {};
+    const categoryColors = {
+      'Electronics': '#4361ee',
+      'Clothing': '#7209b7',
+      'Home': '#4cc9f0',
+      'Books': '#f72585',
+      'Other': '#ff9e00'
+    };
+
+    stockData.forEach(item => {
+      const cat = item.category || 'Other';
+      const qty = Number(item.currentStock) || 0;
+      const value = Number(item.value) || 0;
+      
+      categoryStocks[cat] = (categoryStocks[cat] || 0) + qty;
+      categoryValues[cat] = (categoryValues[cat] || 0) + (qty * value);
+    });
+
+    const categories = Object.keys(categoryStocks);
+    const stockQuantities = Object.values(categoryStocks);
+    const categoryBackgrounds = categories.map(cat => categoryColors[cat] || '#ff9e00');
+
+    // Destroy existing charts before recreating
+    if (salesChart) {
+      salesChart.destroy();
+      salesChart = null;
+    }
+    if (categoryChart) {
+      categoryChart.destroy();
+      categoryChart = null;
+    }
+
+    // Update Sales Chart - Show stock levels by category (as proxy for sales)
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    salesChart = new Chart(salesCtx, {
+      type: 'bar',
+      data: {
+        labels: categories,
+        datasets: [{
+          label: 'Stock Quantity',
+          data: stockQuantities,
+          backgroundColor: categoryBackgrounds,
+          borderRadius: 8,
+          borderWidth: 0,
+          hoverOffset: 15
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: false,
-          grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          },
-          ticks: {
-            callback: function(value) {
-              return '$' + value.toLocaleString();
-            }
+      options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: {
+          legend: {
+            display: false
           }
         },
-        x: {
-          grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              callback: function(value) {
+                return value + ' units';
+              }
+            }
           }
         }
       }
-    }
-  });
+    });
 
-  // Category Chart
-  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-  const categoryChart = new Chart(categoryCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
-      datasets: [{
-        data: [35, 25, 20, 12, 8],
-        backgroundColor: [
-          '#4361ee',
-          '#7209b7',
-          '#4cc9f0',
-          '#f72585',
-          '#ff9e00'
-        ],
-        borderWidth: 0,
-        hoverOffset: 15
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
+    // Update Category Chart - Inventory value by category
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    categoryChart = new Chart(categoryCtx, {
+      type: 'doughnut',
+      data: {
+        labels: categories,
+        datasets: [{
+          data: categories.map(cat => categoryValues[cat] || 0),
+          backgroundColor: categoryBackgrounds,
+          borderWidth: 0,
+          hoverOffset: 15
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                return `${label}: Rs.${value.toLocaleString()} (${percentage}%)`;
+              }
+            }
+          }
         }
       }
+    });
+
+    console.log('📈 Charts updated with live data');
+  }
+
+  // Format time ago
+  function timeAgo(date) {
+    if (!date) return 'Just now';
+    
+    const now = new Date();
+    const diff = Math.floor((now - new Date(date)) / 1000); // seconds
+
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+    if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
+    return new Date(date).toLocaleDateString();
+  }
+
+  // Update recent activity
+  function updateActivity() {
+    const activityList = document.getElementById('activityList');
+    const activities = [];
+
+    // Collect activities from stock data
+    stockData.forEach(item => {
+      const qty = Number(item.currentStock) || 0;
+      const minReq = Number(item.minRequired) || 0;
+
+      // Low stock alert
+      if (qty > 0 && minReq > 0 && qty < minReq) {
+        activities.push({
+          type: 'alert',
+          icon: 'fas fa-exclamation-triangle',
+          title: 'Low Stock Alert',
+          description: `${item.name} - Only ${qty} units (min ${minReq})`,
+          time: item.lastUpdated,
+          timestamp: new Date(item.lastUpdated || new Date()).getTime()
+        });
+      }
+
+      // Out of stock alert
+      if (qty === 0) {
+        activities.push({
+          type: 'danger',
+          icon: 'fas fa-ban',
+          title: 'Out of Stock',
+          description: `${item.name} - Needs immediate restocking`,
+          time: item.lastUpdated,
+          timestamp: new Date(item.lastUpdated || new Date()).getTime()
+        });
+      }
+
+      // Recently updated
+      if (item.lastUpdated) {
+        activities.push({
+          type: 'update',
+          icon: 'fas fa-sync-alt',
+          title: 'Stock Updated',
+          description: `${item.name} - ${qty} units`,
+          time: item.lastUpdated,
+          timestamp: new Date(item.lastUpdated).getTime()
+        });
+      }
+    });
+
+    // Sort by most recent first
+    activities.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Display top 5 activities
+    const topActivities = activities.slice(0, 5);
+
+    if (topActivities.length === 0) {
+      activityList.innerHTML = '<li class="activity-item" style="text-align: center; color: var(--gray);"><i class="fas fa-info-circle"></i> No recent activity</li>';
+      return;
     }
+
+    activityList.innerHTML = topActivities.map(activity => `
+      <li class="activity-item">
+        <div class="activity-icon ${activity.type}">
+          <i class="${activity.icon}"></i>
+        </div>
+        <div class="activity-details">
+          <h4>${activity.title}</h4>
+          <p>${activity.description}</p>
+        </div>
+        <div class="activity-time">${timeAgo(activity.time)}</div>
+      </li>
+    `).join('');
+
+    console.log(`📋 Activity updated - ${topActivities.length} items shown`);
+  }
+
+  // Refresh dashboard
+  function refreshDashboard() {
+    console.log('🔄 Refreshing dashboard...');
+    fetchDashboardData();
+  }
+
+  // Initialize dashboard
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchDashboardData();
+    
+    // Auto-refresh when page gains focus
+    window.addEventListener('focus', function() {
+      console.log('👁️ Page focused - auto-refreshing');
+      fetchDashboardData();
+    });
+    
+    // Auto-refresh every 30 seconds
+    setInterval(fetchDashboardData, 30000);
   });
 </script>
 
