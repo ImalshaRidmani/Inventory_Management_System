@@ -435,30 +435,96 @@
   </div>
 
   <script>
-    function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+    const API_URL = 'http://localhost:5000/api';
+
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
       const errorMsg = document.getElementById('errorMsg');
 
-      // Demo check
-      if(username === "admin" && password === "1234") {
-        // Add loading state
-        const btn = document.querySelector('.btn-login');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-        btn.disabled = true;
-        
-        setTimeout(() => {
-          alert("Login successful!");
-          window.location.href = "dashboard.html";
-        }, 800);
-      } else {
-        errorMsg.style.display = 'flex';
-        // Shake animation for error
-        document.querySelector('.login-right').style.animation = 'shake 0.5s';
-        setTimeout(() => {
-          document.querySelector('.login-right').style.animation = '';
-        }, 500);
+      // Validate inputs
+      if (!username || !password) {
+        showError('Please enter both username and password');
+        return;
       }
+
+      // Show loading state
+      const btn = document.querySelector('.btn-login');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+      btn.disabled = true;
+
+      try {
+        console.log('🔐 Attempting login...', { username });
+
+        // Call backend login API
+        const response = await fetch(`${API_URL}/users/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error('❌ Login failed:', data.message);
+          showError(data.message || 'Invalid username or password');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          return;
+        }
+
+        console.log('✅ Login successful!', data.user);
+
+        // Store token and user info
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('isFirstLogin', data.user.isFirstLogin);
+
+        // Show success message
+        showSuccess('Login successful! Redirecting...');
+
+        // Redirect to dashboard after a short delay
+        setTimeout(() => {
+          // If first login, redirect to change password page
+          if (data.user.isFirstLogin) {
+            window.location.href = 'change-password.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }, 1000);
+      } catch (err) {
+        console.error('❌ Login error:', err);
+        showError('Network error. Please check your connection.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    function showError(message) {
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.querySelector('span').textContent = message;
+      errorMsg.style.display = 'flex';
+      
+      // Shake animation for error
+      document.querySelector('.login-right').style.animation = 'shake 0.5s';
+      setTimeout(() => {
+        document.querySelector('.login-right').style.animation = '';
+      }, 500);
+    }
+
+    function showSuccess(message) {
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.style.background = 'rgba(76, 201, 240, 0.1)';
+      errorMsg.style.color = '#4cc9f0';
+      errorMsg.querySelector('i').className = 'fas fa-check-circle';
+      errorMsg.querySelector('span').textContent = message;
+      errorMsg.style.display = 'flex';
     }
 
     // Add shake animation
@@ -476,6 +542,15 @@
     document.getElementById('password').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         login();
+      }
+    });
+
+    // Check if already logged in
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        // Already logged in, redirect to dashboard
+        window.location.href = 'dashboard.html';
       }
     });
   </script>

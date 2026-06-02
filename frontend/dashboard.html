@@ -111,35 +111,67 @@
     }
 
     .sidebar-footer {
-      padding: 20px;
-      border-top: 1px solid var(--light-gray);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      padding: 20px 25px;
+        border-top: 1px solid var(--light-gray);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--light);
+        margin-top: auto;
     }
 
     .user-avatar {
       width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
     }
 
-    .user-info h4 {
+    /* .user-info h4 {
       font-size: 14px;
-      color: var(--dark);
-      margin-bottom: 2px;
+        color: var(--dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .user-info p {
-      font-size: 12px;
-      color: var(--gray);
-    }
+       font-size: 12px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    } */
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .user-info h4 {
+        font-size: 14px;
+        color: var(--dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .user-info p {
+        font-size: 12px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
     /* MAIN CONTENT */
     .main {
@@ -467,10 +499,11 @@
         width: 70px;
       }
       
-      .sidebar-header h2,
-      .nav-item span,
+      /* .sidebar-header h2,
+      .nav-item span, */
       .user-info {
-        display: none;
+        flex: 1;
+        min-width: 0;
       }
       
       .main {
@@ -543,14 +576,14 @@
   </div>
   
   <div class="sidebar-footer">
-    <div class="user-avatar">AJ</div>
+    <div class="user-avatar" id="userAvatar">AJ</div>
     <div class="user-info">
-      <h4>Admin User</h4>
-      <p>admin@inventory.com</p>
+      <h4 id="userName">Loading...</h4>
+      <p id="userEmail">user@inventory.com</p>
     </div>
-    <a href="login.html" style="margin-left: auto; color: var(--danger);">
+    <button onclick="logout()" style="margin-left: auto; color: var(--danger); background: none; border: none; cursor: pointer; font-size: 18px; padding: 8px; border-radius: 6px; transition: all 0.3s ease;" title="Logout">
       <i class="fas fa-sign-out-alt"></i>
-    </a>
+    </button>
   </div>
 </div>
 
@@ -668,6 +701,23 @@
     </ul>
   </div>
 </div>
+
+<!-- Logout Confirmation Modal -->
+<!-- <div id="logoutModal" class="logout-modal">
+  <div class="logout-modal-content">
+    <div class="logout-modal-header">
+      <i class="fas fa-sign-out-alt" style="color: var(--warning);"></i>
+      <h2>Confirm Logout</h2>
+    </div>
+    <div class="logout-modal-body">
+      <p>Are you sure you want to logout? You'll need to login again to access the inventory system.</p>
+    </div>
+    <div class="logout-modal-footer">
+      <button class="btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+      <button class="btn-logout" onclick="confirmLogout()">Logout</button>
+    </div>
+  </div>
+</div> -->
 
 <script>
   let stockData = [];
@@ -957,8 +1007,93 @@
     fetchDashboardData();
   }
 
+  // Load user info from localStorage
+  function loadUserInfo() {
+    try {
+      const userJSON = localStorage.getItem('user');
+      
+      if (!userJSON) {
+        console.warn('❌ No user data in localStorage, redirecting to login');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userJSON);
+      
+      // Generate avatar initials
+      const firstName = user.firstName || 'U';
+      const lastName = user.lastName || 'S';
+      const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+      
+      // Update UI with user info
+      document.getElementById('userAvatar').textContent = initials;
+      document.getElementById('userName').textContent = `${firstName} ${lastName}`;
+      document.getElementById('userEmail').textContent = user.email || 'user@inventory.com';
+      
+      console.log('✅ User info loaded:', user.username);
+    } catch (err) {
+      console.error('Error loading user info:', err);
+    }
+  }
+
+  // Logout modal functions
+  function logout() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  function confirmLogout() {
+    console.log('🔓 Logging out...');
+    
+    // Clear localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isFirstLogin');
+    
+    console.log('✅ Session cleared, redirecting to login...');
+    
+    // Redirect to login
+    window.location.href = 'login.html';
+  }
+
+  // Close logout modal on outside click
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('logoutModal');
+    if (event.target === modal) {
+      closeLogoutModal();
+    }
+  });
+
+  // Close logout modal with Escape key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeLogoutModal();
+    }
+  });
+
   // Initialize dashboard
   document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is logged in
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.warn('❌ Not logged in, redirecting to login');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Load user info
+    loadUserInfo();
+
+    // Fetch dashboard data
     fetchDashboardData();
     
     // Auto-refresh when page gains focus

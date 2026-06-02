@@ -115,6 +115,53 @@
         width: 24px;
       }
 
+      /* SIDEBAR FOOTER */
+      .sidebar-footer {
+        padding: 20px 25px;
+        border-top: 1px solid var(--light-gray);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--light);
+        margin-top: auto;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .user-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .user-info h4 {
+        font-size: 14px;
+        color: var(--dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .user-info p {
+        font-size: 12px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       /* MAIN CONTENT */
       .main {
         margin-left: 260px;
@@ -396,7 +443,7 @@
         color: white;
         font-size: 14px;
       }
-
+/* 
       .user-info {
         display: flex;
         align-items: center;
@@ -412,6 +459,28 @@
       .user-details p {
         font-size: 12px;
         color: var(--gray);
+      } */
+
+      .user-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .user-info h4 {
+        font-size: 14px;
+        color: var(--dark);
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .user-info p {
+        font-size: 12px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .role-badge {
@@ -826,6 +895,17 @@
           <span>Settings</span>
         </a>
       </div>
+
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="userAvatar">AJ</div>
+        <div class="user-info">
+          <h4 id="userName">Loading...</h4>
+          <p id="userEmail">user@inventory.com</p>
+        </div>
+        <button onclick="logout()" style="margin-left: auto; color: var(--danger); background: none; border: none; cursor: pointer; font-size: 18px; padding: 8px; border-radius: 6px; transition: all 0.3s ease;" title="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
     </div>
 
     <div class="main">
@@ -1130,6 +1210,62 @@
 
       let users = [];
       let roles = [];
+
+      // Load user info from localStorage
+      function loadUserInfo() {
+        try {
+          const userJSON = localStorage.getItem('user');
+          
+          if (!userJSON) {
+            console.warn('❌ No user data in localStorage, redirecting to login');
+            window.location.href = 'login.html';
+            return;
+          }
+
+          const user = JSON.parse(userJSON);
+          
+          // Generate avatar initials
+          const firstName = user.firstName || 'U';
+          const lastName = user.lastName || 'S';
+          const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+          
+          // Update UI with user info
+          const userAvatar = document.getElementById('userAvatar');
+          if (userAvatar) {
+            userAvatar.textContent = initials;
+          }
+          const userName = document.getElementById('userName');
+          if (userName) {
+            userName.textContent = `${firstName} ${lastName}`;
+          }
+          const userEmail = document.getElementById('userEmail');
+          if (userEmail) {
+            userEmail.textContent = user.email || 'user@inventory.com';
+          }
+          
+          console.log('✅ User info loaded:', user.username);
+        } catch (err) {
+          console.error('Error loading user info:', err);
+        }
+      }
+
+      // Logout function
+      function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+          console.log('🔓 Logging out...');
+          
+          // Clear localStorage
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('isFirstLogin');
+          
+          // Show logout message
+          alert('You have been logged out successfully!');
+          
+          // Redirect to login
+          window.location.href = 'login.html';
+        }
+      }
 
       // Fetch Users from API
       async function fetchUsers() {
@@ -1964,6 +2100,17 @@
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {
+        // Check authentication
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+          console.warn('⚠️ No auth token found, redirecting to login');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // Load user info in sidebar
+        loadUserInfo();
+        
         populateRoleFilter();
         populateRoleDropdown();
         // renderUserTable();
