@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const transporter = require("../config/mail");
 
 // Create User
@@ -214,5 +215,144 @@ exports.updateUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Error updating user" });
+  }
+};
+
+// 🔐 LOGIN User
+exports.login = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({
+        message: "Username and password required",
+      });
+    }
+
+    // Find user by username
+    const user = await User.findOne({ username }).populate("roleId");
+
+    if (!user) {
+      console.log(`❌ Login failed - User not found: ${username}`);
+      return res.status(401).json({
+        message: "Invalid username or password",
+      });
+    }
+
+    // Compare passwords
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password.password
+    );
+
+    if (!isPasswordValid) {
+      console.log(`❌ Login failed - Wrong password for: ${username}`);
+      return res.status(401).json({
+        message: "Invalid username or password",
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        roleId: user.roleId?._id,
+        roleName: user.roleId?.name,
+      },
+      process.env.JWT_SECRET || "your_secret_key_change_in_env",
+      { expiresIn: "24h" }
+    );
+
+    console.log(`✅ Login successful - User: ${username}`);
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        userId: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        roleName: user.roleId?.name,
+        department: user.department,
+        avatarColor: user.avatarColor,
+        isFirstLogin: user.isFirstLogin,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Error during login" });
+  }
+};
+
+// 🔐 CHANGE PASSWORD (First Login)
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Current password and new password required",
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password.password
+    );
+
+    if (!isPasswordValid) {
+      console.log(`❌ Change password failed - Wrong current password for: ${user.username}`);
+      return res.status(401).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and mark first login as false
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        password: {
+          password: hashedPassword,
+          otp: "",
+          isFirstLogin: false,
+        },
+        isFirstLogin: false,
+      },
+      { new: true }
+    );
+
+    console.log(`✅ Password changed successfully - User: ${user.username}`);
+
+    res.json({
+      message: "Password changed successfully",
+      user: {
+        userId: updatedUser._id,
+        username: updatedUser.username,
+        isFirstLogin: false,
+      },
+    });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ message: "Error changing password" });
   }
 };
